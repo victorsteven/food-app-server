@@ -2,7 +2,7 @@ package interfaces
 
 import "github.com/gin-gonic/gin"
 
-func route() *gin.Engine {
+func Route() *gin.Engine {
 
 	router := gin.Default()
 

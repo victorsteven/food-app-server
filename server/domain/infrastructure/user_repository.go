@@ -4,8 +4,8 @@ import (
 	"errors"
 	"food-app/server/domain/entity"
 	"food-app/server/domain/repository"
-	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 )
 
 type userRepo struct {
