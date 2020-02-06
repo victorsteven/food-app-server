@@ -59,3 +59,4 @@ func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
 	return users, nil
 }
 
+

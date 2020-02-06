@@ -7,11 +7,6 @@ import (
 	"log"
 )
 
-//func init() {
-//	if err := godotenv.Load(os.ExpandEnv("./../../.env")); err != nil {
-//		log.Println("no env gotten")
-//	}
-//}
 
 var db *gorm.DB
 

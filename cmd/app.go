@@ -1,7 +1,6 @@
-package app
+package cmd
 
 import (
-	"fmt"
 	"food-app/database"
 	"food-app/domain/entity"
 	"github.com/gin-gonic/gin"
@@ -20,10 +19,8 @@ var (
 	router = gin.Default()
 )
 
-
 func StartApp() {
-	//infrastructure.UserRepo.NewDBConnection(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_PORT"), os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
-	//route()
+
 	dbdriver := os.Getenv("DB_DRIVER")
 	host := os.Getenv("DB_HOST")
 	password := os.Getenv("DB_PASSWORD")
@@ -34,11 +31,11 @@ func StartApp() {
 	conn, err := database.NewDBConnection(dbdriver, user, password, port, host, dbname)
 	if err != nil {
 		log.Fatal("cannot connect to the db: ", err)
-	} else {
-		fmt.Println("DB CONNECTED")
+		return
 	}
 	conn.Debug().AutoMigrate(
 		entity.User{},
+		entity.Food{},
 	)
 
 	Route()

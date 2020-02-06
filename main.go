@@ -1,9 +1,9 @@
 package main
 
 import (
-	"food-app/app"
+	"food-app/cmd"
 )
 
 func main() {
-	app.StartApp()
+	cmd.StartApp()
 }

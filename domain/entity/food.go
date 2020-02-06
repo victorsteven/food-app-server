@@ -2,14 +2,11 @@ package entity
 
 import "time"
 
-type User struct {
+type Food struct {
 	ID        uint64 `gorm:"primary_key;auto_increment" json:"id"`
-	FirstName string `json:"first_name"`
-	LastName string `json:"last_name"`
-	Email string `json:"email"`
-	Password string `json:"-"`
+	Title string `json:"title"`
+	Description string `json:"description"`
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time   `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt *time.Time  `json:"deleted_at"`
 }
-
