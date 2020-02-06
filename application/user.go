@@ -49,8 +49,8 @@ func (u *UserImpl) GetUsers() ([]entity.User, error) {
 func (u *UserImpl) GetUserByEmailAndPassword(email string, password string) (*entity.User, error) {
 	db := rdbms.NewDB()
 	conn := infrastructure.NewRepositoryUsersCRUD(db)
-	user, err :=  conn.GetUserByEmailAndPassword(email, password)
-	if  err != nil {
+	user, err := conn.GetUserByEmailAndPassword(email, password)
+	if err != nil {
 		return nil, err
 	}
 	return user, nil

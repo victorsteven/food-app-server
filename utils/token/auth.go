@@ -17,6 +17,7 @@ type tokenData struct {
 }
 type tokenInterface interface {
 	CreateAuth(uint64, *TokenDetails) error
+	FetchAuth(*AccessDetails) (uint64, error)
 	NewRedisClient(host, port, password string) (*redis.Client, error)
 }
 
@@ -156,20 +157,20 @@ func ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 }
 
 //Check the metadata saved
-//func FetchAuth(authD *AccessDetails) (uint64, error) {
-//	userid, err := client.Get(authD.AccessUuid).Result()
-//	if err != nil {
-//		return 0, err
-//	}
-//	userID, _ := strconv.ParseUint(userid, 10, 64)
-//	return userID, nil
-//}
-//
-////Once a user row in the token table
-//func DeleteToken(givenUuid string) (int64, error) {
-//	deleted, err := client.Del(givenUuid).Result()
-//	if err != nil {
-//		return 0, err
-//	}
-//	return deleted, nil
-//}
+func (tk *tokenData) FetchAuth(authD *AccessDetails) (uint64, error) {
+	userid, err := tk.conn.Get(authD.AccessUuid).Result()
+	if err != nil {
+		return 0, err
+	}
+	userID, _ := strconv.ParseUint(userid, 10, 64)
+	return userID, nil
+}
+
+//Once a user row in the token table
+func (tk *tokenData) DeleteToken(givenUuid string) (int64, error) {
+	deleted, err := tk.conn.Del(givenUuid).Result()
+	if err != nil {
+		return 0, err
+	}
+	return deleted, nil
+}
