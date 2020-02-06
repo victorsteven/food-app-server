@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"food-app/database"
+	"food-app/database/rdbms"
 	"food-app/domain/entity"
+	"food-app/utils/token"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
@@ -21,6 +22,7 @@ var (
 
 func StartApp() {
 
+	//Connecting to a RDBMS
 	dbdriver := os.Getenv("DB_DRIVER")
 	host := os.Getenv("DB_HOST")
 	password := os.Getenv("DB_PASSWORD")
@@ -28,7 +30,7 @@ func StartApp() {
 	dbname := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	conn, err := database.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	conn, err := rdbms.NewDBConnection(dbdriver, user, password, port, host, dbname)
 	if err != nil {
 		log.Fatal("cannot connect to the db: ", err)
 		return
@@ -38,6 +40,15 @@ func StartApp() {
 		entity.Food{},
 	)
 
+	//Connecting to Redis
+	redis_host := os.Getenv("REDIS_HOST")
+	redis_port := os.Getenv("REDIS_PORT")
+	redis_password := os.Getenv("REDIS_PASSWORD")
+
+	_, err = token.TokenAuth.NewRedisClient(redis_host, redis_port, redis_password)
+	if err != nil {
+		log.Fatal(err)
+	}
 	Route()
 
 	_ = router.Run(":8080")

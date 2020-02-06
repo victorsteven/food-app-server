@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	"food-app/database"
+	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"github.com/jinzhu/gorm"
 	"os"
@@ -15,7 +15,7 @@ func Database() (*gorm.DB, error) {
 	dbname := os.Getenv("TEST_DB_NAME")
 	port := os.Getenv("TEST_DB_PORT")
 
-	conn, err := database.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	conn, err := rdbms.NewDBConnection(dbdriver, user, password, port, host, dbname)
 	if err != nil {
 		return nil, err
 	}

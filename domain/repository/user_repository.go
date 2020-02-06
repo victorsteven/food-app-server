@@ -9,6 +9,3 @@ type UserRepository interface {
 	GetUser(uint64) (*entity.User, error)
 	GetUsers() ([]entity.User, error)
 }
-
-
-

@@ -1,14 +1,12 @@
 package interfaces
 
 import (
-	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 )
-
 
 func SaveUser(c *gin.Context) {
 	var user entity.User
@@ -18,7 +16,6 @@ func SaveUser(c *gin.Context) {
 	}
 	u, err := application.UserApp().SaveUser(&user)
 	if err != nil {
-		fmt.Println("WE HAVE AN ERROR")
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -34,17 +31,16 @@ func GetUsers(c *gin.Context) {
 	c.JSON(http.StatusCreated, users)
 }
 
-func  GetUser(c *gin.Context) {
-	_, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
+func GetUser(c *gin.Context) {
+	userId, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-
-	//u, err := interactor.GetUser(userId)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, err.Error())
-	//	return
-	//}
-	c.JSON(http.StatusCreated, "dfs")
+	user, err := application.UserApp().GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }

@@ -7,8 +7,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 )
 
-
-
 type repositoryFoodCRUD struct {
 	db *gorm.DB
 }
@@ -56,4 +54,3 @@ func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
 	}
 	return allfood, nil
 }
-

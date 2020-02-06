@@ -1,13 +1,12 @@
 package application
 
 import (
-	"food-app/database"
+	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/infrastructure"
 )
 
 type FoodImpl struct {
-
 }
 
 func FoodApp() FoodAppInterface {
@@ -26,14 +25,14 @@ type FoodAppInterface interface {
 //}
 
 func (u *FoodImpl) SaveFood(food *entity.Food) (*entity.Food, error) {
-	db := database.NewDB()
+	db := rdbms.NewDB()
 	conn := infrastructure.NewRepositoryFoodCRUD(db)
 	//u, err := entity.User{}
 	return conn.SaveFood(food)
 }
 
 func (u *FoodImpl) GetAllFood() ([]entity.Food, error) {
-	db := database.NewDB()
+	db := rdbms.NewDB()
 	conn := infrastructure.NewRepositoryFoodCRUD(db)
 	//u, err := entity.User{}
 	return conn.GetAllFood()

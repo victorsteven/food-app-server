@@ -1,4 +1,4 @@
-package database
+package rdbms
 
 import (
 	"fmt"
@@ -7,10 +7,9 @@ import (
 	"log"
 )
 
-
 var db *gorm.DB
 
-func  NewDBConnection(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*gorm.DB, error) {
+func NewDBConnection(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*gorm.DB, error) {
 	var err error
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
 	db, err = gorm.Open(Dbdriver, DBURL)
