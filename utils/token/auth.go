@@ -27,7 +27,7 @@ func (tk *tokenData) NewRedisClient(host, port, password string) (*redis.Client,
 	tk.conn = redis.NewClient(&redis.Options{
 		Addr:     host + ":" + port,
 		Password: password,
-		DB:       0,
+		DB:       0, //use default DB
 	})
 	return tk.conn, nil
 }

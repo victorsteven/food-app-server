@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"food-app/cmd/middleware"
 	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/utils/token"
@@ -49,7 +50,9 @@ func StartApp() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	router.Use(middleware.CORSMiddleware())
+
 	Route()
 
-	_ = router.Run(":8080")
+	_ = router.Run(":8888")
 }
