@@ -16,7 +16,7 @@ func SaveUser(c *gin.Context) {
 	}
 	u, err := application.UserApp().SaveUser(&user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(err.StatusErr, err)
 		return
 	}
 	c.JSON(http.StatusCreated, u)

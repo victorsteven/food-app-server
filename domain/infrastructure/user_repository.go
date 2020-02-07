@@ -3,10 +3,13 @@ package infrastructure
 import (
 	"errors"
 	"food-app/domain/entity"
+	"food-app/utils/app_errors"
 	"food-app/utils/security"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 	"golang.org/x/crypto/bcrypt"
+	"net/http"
+	"strings"
 )
 
 type repositoryUsersCRUD struct {
@@ -17,10 +20,19 @@ func NewRepositoryUsersCRUD(db *gorm.DB) *repositoryUsersCRUD {
 	return &repositoryUsersCRUD{db}
 }
 
-func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, error) {
+func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, *app_errors.UserError) {
+	dbError := &app_errors.UserError{}
+	validateErr := user.Validate("")
+	if validateErr != nil {
+		return nil, validateErr
+	}
 	err := r.db.Debug().Create(&user).Error
 	if err != nil {
-		return nil, err
+		if strings.Contains(err.Error(), "duplicate") {
+			dbError.EmailErr = "email already taken"
+			dbError.StatusErr = http.StatusInternalServerError
+		}
+		return nil, dbError
 	}
 	return user, nil
 }
