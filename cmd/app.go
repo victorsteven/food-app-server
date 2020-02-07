@@ -54,5 +54,10 @@ func StartApp() {
 
 	Route()
 
-	_ = router.Run(":8888")
+	app_port := os.Getenv("PORT")
+	if port == "" {
+		app_port = "8888"
+	}
+
+	_ = router.Run(":"+app_port)
 }
