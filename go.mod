@@ -3,6 +3,7 @@ module food-app
 go 1.13
 
 require (
+	github.com/aws/aws-sdk-go v1.28.13
 	github.com/badoux/checkmail v0.0.0-20181210160741-9661bd69e9ad
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.5.0
