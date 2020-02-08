@@ -3,12 +3,11 @@ package infrastructure
 import (
 	"errors"
 	"food-app/domain/entity"
-	"food-app/utils/app_errors"
 	"food-app/utils/security"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 	"golang.org/x/crypto/bcrypt"
-	"net/http"
+	//"net/http"
 	"strings"
 )
 
@@ -20,19 +19,18 @@ func NewRepositoryUsersCRUD(db *gorm.DB) *repositoryUsersCRUD {
 	return &repositoryUsersCRUD{db}
 }
 
-func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, *app_errors.UserError) {
-	dbError := &app_errors.UserError{}
-	validateErr := user.Validate("")
-	if validateErr != nil {
-		return nil, validateErr
-	}
+func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+	dbErr := map[string]string{}
 	err := r.db.Debug().Create(&user).Error
 	if err != nil {
+		//If the email is already taken
 		if strings.Contains(err.Error(), "duplicate") {
-			dbError.EmailErr = "email already taken"
-			dbError.StatusErr = http.StatusInternalServerError
+			dbErr["email_taken"] = "email already taken"
+			return nil, dbErr
 		}
-		return nil, dbError
+		//any other db error
+		dbErr["db_error"] = "database error"
+		return nil, dbErr
 	}
 	return user, nil
 }
@@ -61,18 +59,23 @@ func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
 	return users, nil
 }
 
-func (r *repositoryUsersCRUD) GetUserByEmailAndPassword(email, password string) (*entity.User, error) {
+func (r *repositoryUsersCRUD) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
 	var user entity.User
-	err := r.db.Debug().Where("email = ?", email).Take(&user).Error
-	if err != nil {
-		return nil, err
-	}
+	dbErr := map[string]string{}
+	err := r.db.Debug().Where("email = ?", u.Email).Take(&user).Error
 	if gorm.IsRecordNotFoundError(err) {
-		return nil, errors.New("user not found")
+		dbErr["no_user"] = "user not found"
+		return nil, dbErr
 	}
-	err = security.VerifyPassword(user.Password, password)
+	if err != nil {
+		dbErr["db_error"] = "database error"
+		return nil, dbErr
+	}
+	//Verify the password
+	err = security.VerifyPassword(user.Password, u.Password)
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return nil, err
+		dbErr["incorrect_password"] = "incorrect password"
+		return nil, dbErr
 	}
 	return &user, nil
 }

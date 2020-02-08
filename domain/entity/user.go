@@ -1,11 +1,9 @@
 package entity
 
 import (
-	"food-app/utils/app_errors"
 	"food-app/utils/security"
 	"github.com/badoux/checkmail"
 	"html"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -15,10 +13,16 @@ type User struct {
 	FirstName string     `gorm:"size:100;not null;" json:"first_name"`
 	LastName  string     `gorm:"size:100;not null;" json:"last_name"`
 	Email     string     `gorm:"size:100;not null;unique" json:"email"`
-	Password  string     `json:"-"`
+	Password  string     `gorm:"size:100;not null;" json:"password"`
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
+}
+
+type PublicUser struct {
+	ID        uint64     `gorm:"primary_key;auto_increment" json:"id"`
+	FirstName string     `gorm:"size:100;not null;" json:"first_name"`
+	LastName  string     `gorm:"size:100;not null;" json:"last_name"`
 }
 
 //BeforeSave is a gorm hook
@@ -39,79 +43,65 @@ func (u *User) Prepare() {
 	u.UpdatedAt = time.Now()
 }
 
-func (u *User) Validate(action string) *app_errors.UserError {
-	var userErr  = app_errors.UserError{}
+func (u *User) Validate(action string) map[string]string {
+	var errorMessages = make(map[string]string)
 	var err error
 
 	switch strings.ToLower(action) {
-	//case "update":
-	//	if u.Email == "" {
-	//		err = errors.New("Required Email")
-	//		errorMessages["Required_email"] = err.Error()
-	//	}
-	//	if u.Email != "" {
-	//		if err = checkmail.ValidateFormat(u.Email); err != nil {
-	//			err = errors.New("Invalid Email")
-	//			errorMessages["Invalid_email"] = err.Error()
-	//		}
-	//	}
-	//
-	//case "login":
-	//	if u.Password == "" {
-	//		err = errors.New("Required Password")
-	//		errorMessages["Required_password"] = err.Error()
-	//	}
-	//	if u.Email == "" {
-	//		err = errors.New("Required Email")
-	//		errorMessages["Required_email"] = err.Error()
-	//	}
-	//	if u.Email != "" {
-	//		if err = checkmail.ValidateFormat(u.Email); err != nil {
-	//			err = errors.New("Invalid Email")
-	//			errorMessages["Invalid_email"] = err.Error()
-	//		}
-	//	}
-	//case "forgotpassword":
-	//	if u.Email == "" {
-	//		err = app_errors.New("Required Email")
-	//		errorMessages["Required_email"] = err.Error()
-	//	}
-	//	if u.Email != "" {
-	//		if err = checkmail.ValidateFormat(u.Email); err != nil {
-	//			err = app_errors.New("Invalid Email")
-	//			errorMessages["Invalid_email"] = err.Error()
-	//		}
-	//	}
-	default:
-		if u.FirstName == "" {
-			userErr.FnErr = "first name is required"
-		}
-		if u.LastName == "" {
-			userErr.LnErr = "last name is required"
-		}
-		//if u.Password == "" {
-		//	err = errors.New("Required Password")
-		//	errorMessages["Required_password"] = err.Error()
-		//}
-		//if u.Password != "" && len(u.Password) < 6 {
-		//	err = errors.New("Password should be atleast 6 characters")
-		//	errorMessages["Invalid_password"] = err.Error()
-		//}
+	case "update":
 		if u.Email == "" {
-			userErr.EmailErr = "email is required"
+			errorMessages["email_required"] = "email required"
 		}
 		if u.Email != "" {
 			if err = checkmail.ValidateFormat(u.Email); err != nil {
-				userErr.EmailErr = "invalid email"
+				errorMessages["invalid_email"] = "email email"
+			}
+		}
+
+	case "login":
+		if u.Password == "" {
+			errorMessages["password_required"] = "password required"
+		}
+		if u.Email == "" {
+			errorMessages["email_required"] = "email required"
+		}
+		if u.Email != "" {
+			if err = checkmail.ValidateFormat(u.Email); err != nil {
+				errorMessages["invalid_email"] = "please provide a valid email"
+			}
+		}
+	case "forgotpassword":
+		if u.Email == "" {
+			errorMessages["email_required"] = "email required"
+		}
+		if u.Email != "" {
+			if err = checkmail.ValidateFormat(u.Email); err != nil {
+				errorMessages["invalid_email"] = "please provide a valid email"
+			}
+		}
+	default:
+		if u.FirstName == "" {
+			errorMessages["firstname_required"] = "first name is required"
+		}
+		if u.LastName == "" {
+			errorMessages["lastname_required"] = "last name is required"
+		}
+		if u.Password == "" {
+			errorMessages["password_required"] = "password is required"
+		}
+		if u.Password != "" && len(u.Password) < 6 {
+			errorMessages["invalid_password"] = "password should be at least 6 characters"
+		}
+		if u.Email == "" {
+			errorMessages["email_required"] = "email is required"
+		}
+		if u.Email != "" {
+			if err = checkmail.ValidateFormat(u.Email); err != nil {
+				errorMessages["invalid_email"] = "please provide a valid email"
 			}
 		}
 	}
-	empty := app_errors.UserError{}
-	if userErr != empty {
-		userErr.StatusErr = http.StatusUnprocessableEntity
-		return &userErr
-	}
-	return nil
+	return errorMessages
 }
 
 

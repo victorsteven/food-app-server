@@ -14,9 +14,15 @@ func SaveUser(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, err)
 		return
 	}
+	//validate the request:
+	validateErr := user.Validate("")
+	if len(validateErr) > 0 {
+		c.JSON(http.StatusUnprocessableEntity, validateErr)
+		return
+	}
 	u, err := application.UserApp().SaveUser(&user)
 	if err != nil {
-		c.JSON(err.StatusErr, err)
+		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
 	c.JSON(http.StatusCreated, u)

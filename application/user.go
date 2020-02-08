@@ -4,7 +4,6 @@ import (
 	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/infrastructure"
-	"food-app/utils/app_errors"
 )
 
 type UserImpl struct {
@@ -16,10 +15,10 @@ func UserApp() UserAppInterface {
 }
 
 type UserAppInterface interface {
-	SaveUser(*entity.User) (*entity.User, *app_errors.UserError)
+	SaveUser(*entity.User) (*entity.User, map[string]string)
 	GetUsers() ([]entity.User, error)
 	GetUser(uint64) (*entity.User, error)
-	GetUserByEmailAndPassword(string, string) (*entity.User, error)
+	GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string)
 }
 
 //GetUser returns a user
@@ -28,7 +27,7 @@ type UserAppInterface interface {
 //	return nil, nil
 //}
 
-func (u *UserImpl) SaveUser(user *entity.User) (*entity.User, *app_errors.UserError) {
+func (u *UserImpl) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	db := rdbms.NewDB()
 	conn := infrastructure.NewRepositoryUsersCRUD(db)
 	return conn.SaveUser(user)
@@ -47,12 +46,12 @@ func (u *UserImpl) GetUsers() ([]entity.User, error) {
 	return conn.GetUsers()
 }
 
-func (u *UserImpl) GetUserByEmailAndPassword(email string, password string) (*entity.User, error) {
+func (u *UserImpl) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
 	db := rdbms.NewDB()
 	conn := infrastructure.NewRepositoryUsersCRUD(db)
-	user, err := conn.GetUserByEmailAndPassword(email, password)
+	foundUser, err := conn.GetUserByEmailAndPassword(user)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return foundUser, nil
 }

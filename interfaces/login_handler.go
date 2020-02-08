@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/token"
@@ -9,39 +8,49 @@ import (
 	"net/http"
 )
 
-func signin(user entity.User) (map[string]string, error) {
-
-	//check if the user exist:
-	u, err := application.UserApp().GetUserByEmailAndPassword(user.Email, user.Password)
+func signin(user *entity.User) (map[string]interface{}, map[string]string) {
+	var tokenErr = map[string]string{}
+	//check if the user details are correct:
+	u, err := application.UserApp().GetUserByEmailAndPassword(user)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("THE ID TO SEND: ", u.ID)
-	ts, err := token.CreateToken(u.ID)
-	if err != nil {
+	ts, tErr := token.CreateToken(u.ID)
+	if tErr != nil {
+		tokenErr["token_error"] = tErr.Error()
 		return nil, err
 	}
 	saveErr := token.TokenAuth.CreateAuth(u.ID, ts)
 	if saveErr != nil {
 		return nil, err
 	}
-	tokens := map[string]string{
-		"access_token":  ts.AccessToken,
-		"refresh_token": ts.RefreshToken,
-	}
-	return tokens, nil
+	userData := make(map[string]interface{})
+	userData["access_token"] = ts.AccessToken
+	userData["refresh_token"] = ts.RefreshToken
+	userData["id"] = u.ID
+	userData["email"] = u.Email
+	userData["first_name"] = u.FirstName
+	userData["last_name"] = u.LastName
+
+	return userData, nil
 }
 
 func Login(c *gin.Context) {
-	var user entity.User
+	var user *entity.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
 		return
 	}
-	tokens, err := signin(user)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err.Error())
+	//validate request:
+	validateUser := user.Validate("login")
+	if len(validateUser) > 0 {
+		c.JSON(http.StatusUnprocessableEntity, validateUser)
 		return
 	}
-	c.JSON(http.StatusOK, tokens)
+	userData, err := signin(user)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err)
+		return
+	}
+	c.JSON(http.StatusOK, userData)
 }
