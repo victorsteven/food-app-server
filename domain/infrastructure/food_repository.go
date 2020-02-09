@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"errors"
+	"fmt"
 	"food-app/domain/entity"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
@@ -35,11 +36,14 @@ func (r *repositoryFoodCRUD) GetFood(id uint64) (*entity.Food, error) {
 	var food entity.Food
 	err := r.db.Debug().Where("id = ?", id).Take(&food).Error
 	if err != nil {
-		return nil, err
+		fmt.Println("error 1: ", err)
+		return nil, errors.New("database error, please try again")
 	}
 	if gorm.IsRecordNotFoundError(err) {
-		return nil, errors.New("user not found")
+		fmt.Println("error 2: ", err)
+		return nil, errors.New("food not found")
 	}
+	fmt.Println("the food: ", food)
 	return &food, nil
 }
 
@@ -54,3 +58,15 @@ func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
 	}
 	return allfood, nil
 }
+
+//func (r *repositoryFoodCRUD) GetFood(foodId uint64) (*entity.Food, error) {
+//	var allfood []entity.Food
+//	err := r.db.Debug().Find(&allfood).Error
+//	if err != nil {
+//		return nil, err
+//	}
+//	if gorm.IsRecordNotFoundError(err) {
+//		return nil, errors.New("user not found")
+//	}
+//	return allfood, nil
+//}

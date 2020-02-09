@@ -8,6 +8,7 @@ import (
 	"food-app/utils/token"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 func SaveFood(c *gin.Context) {
@@ -58,4 +59,19 @@ func GetAllFood(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, allfood)
+}
+
+func GetFood(c *gin.Context) {
+
+	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "invalid request")
+		return
+	}
+	food, err := application.FoodApp().GetFood(foodId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, food)
 }

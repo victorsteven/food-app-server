@@ -16,6 +16,7 @@ func FoodApp() FoodAppInterface {
 type FoodAppInterface interface {
 	SaveFood(*entity.Food) (*entity.Food, error)
 	GetAllFood() ([]entity.Food, error)
+	GetFood(uint64) (*entity.Food, error)
 }
 
 //GetUser returns a user
@@ -36,4 +37,11 @@ func (u *FoodImpl) GetAllFood() ([]entity.Food, error) {
 	conn := infrastructure.NewRepositoryFoodCRUD(db)
 	//u, err := entity.User{}
 	return conn.GetAllFood()
+}
+
+func (u *FoodImpl) GetFood(foodId uint64) (*entity.Food, error) {
+	db := rdbms.NewDB()
+	conn := infrastructure.NewRepositoryFoodCRUD(db)
+	//u, err := entity.User{}
+	return conn.GetFood(foodId)
 }
