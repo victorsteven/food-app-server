@@ -33,8 +33,9 @@ func (fu *fileUpload) UploadFile(file *multipart.FileHeader) (string, error) {
 
 	size := file.Size
 	//The image should not be more than 500KB
+	fmt.Println("the size: ", size)
 	if size > int64(512000) {
-		return "", errors.New("sorry, Please upload an Image of 500KB or less")
+		return "", errors.New("sorry, please upload an Image of 500KB or less")
 	}
 	//only the first 512 bytes are used to sniff the content type of a file,
 	//so, so no need to read the entire bytes of a file.
@@ -43,7 +44,7 @@ func (fu *fileUpload) UploadFile(file *multipart.FileHeader) (string, error) {
 	fileType := http.DetectContentType(buffer)
 	//if the image is valid
 	if !strings.HasPrefix(fileType, "image") {
-		return "", errors.New("please Upload a valid image")
+		return "", errors.New("please upload a valid image")
 	}
 	fileBytes := bytes.NewReader(buffer)
 	filePath := FormatFile(file.Filename)

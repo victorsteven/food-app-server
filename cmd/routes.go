@@ -18,8 +18,7 @@ func Route() *gin.Engine {
 	router.POST("/food", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), interfaces.SaveFood)
 	router.GET("/food", interfaces.GetAllFood)
 	router.GET("/food/:food_id", interfaces.GetFood)
-
-	//router.GET("/food/:food_id", interfaces.GetUser)
+	router.PUT("/food/:food_id", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), interfaces.UpdateFood)
 
 	return router
 }

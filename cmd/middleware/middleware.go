@@ -44,14 +44,11 @@ func MaxSizeAllowed(n int64) gin.HandlerFunc {
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, n)
 		buff, errRead := c.GetRawData()
 		if errRead != nil {
-			c.JSON(http.StatusRequestEntityTooLarge,"too large")
-			conn, bufrw, err := c.Writer.Hijack()
-			if err != nil {
-				c.Abort()
-				return
-			}
-			bufrw.Flush()
-			conn.Close()
+			//c.JSON(http.StatusRequestEntityTooLarge,"too large")
+			c.JSON(http.StatusRequestEntityTooLarge, gin.H{
+				"status": http.StatusRequestEntityTooLarge,
+				"upload_err":  "too large: upload an image less than 8MB",
+			})
 			c.Abort()
 			return
 		}

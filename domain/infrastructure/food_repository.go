@@ -43,7 +43,6 @@ func (r *repositoryFoodCRUD) GetFood(id uint64) (*entity.Food, error) {
 		fmt.Println("error 2: ", err)
 		return nil, errors.New("food not found")
 	}
-	fmt.Println("the food: ", food)
 	return &food, nil
 }
 
@@ -57,6 +56,14 @@ func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
 		return nil, errors.New("user not found")
 	}
 	return allfood, nil
+}
+
+func (r *repositoryFoodCRUD) UpdateFood(food *entity.Food) (*entity.Food, error) {
+	err := r.db.Debug().Save(&food).Error
+	if err != nil {
+		return nil, err
+	}
+	return food, nil
 }
 
 //func (r *repositoryFoodCRUD) GetFood(foodId uint64) (*entity.Food, error) {
