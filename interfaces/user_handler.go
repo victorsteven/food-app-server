@@ -25,16 +25,18 @@ func SaveUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, u)
+	c.JSON(http.StatusCreated, u.PublicUser())
 }
 
 func GetUsers(c *gin.Context) {
-	users, err := application.UserApp().GetUsers()
+	us := entity.Users{} //customize user
+	var err error
+	us, err = application.UserApp().GetUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusCreated, users)
+	c.JSON(http.StatusCreated, us.PublicUsers())
 }
 
 func GetUser(c *gin.Context) {
@@ -48,5 +50,5 @@ func GetUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, user.PublicUser())
 }

@@ -86,16 +86,12 @@ func UpdateFood(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "invalid request")
 		return
 	}
-	fmt.Println("the food id: ", foodId)
-	fmt.Println("the food id: ", foodId)
-
 	//Since it is a multipart form data we sent, we will do a manual check on each item
 	title := c.PostForm("title")
 	description := c.PostForm("description")
 	if fmt.Sprintf("%T", title) != "string" || fmt.Sprintf("%T", description) != "string" {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json")
 	}
-	fmt.Println("the title: ", title)
 	//We initialize a new food for the purpose of validating: in case the payload is empty or an invalid data type is used
 	emptyFood := entity.Food{}
 	emptyFood.Title = title
@@ -153,7 +149,7 @@ func GetAllFood(c *gin.Context) {
 	c.JSON(http.StatusOK, allfood)
 }
 
-func GetFood(c *gin.Context) {
+func GetFoodAndCreator(c *gin.Context) {
 	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "invalid request")
@@ -164,5 +160,15 @@ func GetFood(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, food)
+	user, err := application.UserApp().GetUser(food.UserID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	foodAndUser := map[string]interface{}{
+		"food": food,
+		"creator": user.PublicUser(),
+	}
+
+	c.JSON(http.StatusOK, foodAndUser)
 }

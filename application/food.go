@@ -37,6 +37,7 @@ func (u *FoodImpl) GetAllFood() ([]entity.Food, error) {
 	db := rdbms.NewDB()
 	conn := infrastructure.NewRepositoryFoodCRUD(db)
 	//u, err := entity.User{}
+
 	return conn.GetAllFood()
 }
 

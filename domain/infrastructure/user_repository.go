@@ -49,7 +49,9 @@ func (r *repositoryUsersCRUD) GetUser(id uint64) (*entity.User, error) {
 
 func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
 	var users []entity.User
+	//err := r.db.Debug().Find(&users).Error
 	err := r.db.Debug().Find(&users).Error
+	//db.Preload("Orders").Find(&users)
 	if err != nil {
 		return nil, err
 	}

@@ -28,7 +28,6 @@ func signin(user *entity.User) (map[string]interface{}, map[string]string) {
 	userData["access_token"] = ts.AccessToken
 	userData["refresh_token"] = ts.RefreshToken
 	userData["id"] = u.ID
-	userData["email"] = u.Email
 	userData["first_name"] = u.FirstName
 	userData["last_name"] = u.LastName
 

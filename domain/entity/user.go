@@ -16,7 +16,8 @@ type User struct {
 	Password  string     `gorm:"size:100;not null;" json:"password"`
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt *time.Time `json:"deleted_at"`
+	DeletedAt *time.Time `json:"deleted_at,omitempty"`
+	//Foods Food //a food belong to a user(a user can create more than one food)
 }
 
 type PublicUser struct {
@@ -33,6 +34,28 @@ func (u *User) BeforeSave() error {
 	}
 	u.Password = string(hashPassword)
 	return nil
+}
+func (u *User) AfterFind()  {
+	//u.Password = ""
+}
+
+type Users []User
+//So that we dont expose the user's email address and password to the world
+func (users Users) PublicUsers() []interface{} {
+	result := make([]interface{}, len(users))
+	for index, user := range users {
+		result[index] = user.PublicUser()
+	}
+	return result
+}
+
+//So that we dont expose the user's email address and password to the world
+func (u *User) PublicUser() interface{} {
+	return &PublicUser{
+		ID:        u.ID,
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
+	}
 }
 
 func (u *User) Prepare() {

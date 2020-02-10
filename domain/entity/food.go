@@ -16,6 +16,12 @@ type Food struct {
 	CreatedAt   time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt   *time.Time `json:"deleted_at"`
+	//User    User      `json:"user"` //a user can create many food. This also means, anytime you are getting food, also get the user
+}
+
+
+func (f *Food) BeforeSave() {
+	f.Title = html.EscapeString(strings.TrimSpace(f.Title))
 }
 
 func (f *Food) AfterFind()  {
