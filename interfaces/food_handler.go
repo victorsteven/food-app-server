@@ -172,3 +172,17 @@ func GetFoodAndCreator(c *gin.Context) {
 
 	c.JSON(http.StatusOK, foodAndUser)
 }
+
+func DeleteFood(c *gin.Context) {
+	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "invalid request")
+		return
+	}
+	err = application.FoodApp().DeleteFood(foodId)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, "food deleted")
+}
