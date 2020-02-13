@@ -18,18 +18,6 @@ type repositoryUsersCRUD struct {
 
 var UserRepo repository.UserRepository = &repositoryUsersCRUD{}
 
-func (r *repositoryUsersCRUD) GetUser(uint64) (*entity.User, error) {
-	panic("implement me")
-}
-
-func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
-	panic("implement me")
-}
-
-func (r *repositoryUsersCRUD) GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string) {
-	panic("implement me")
-}
-
 func NewUserRepository(db *gorm.DB) repository.UserRepository {
 	return &repositoryUsersCRUD{db}
 }
@@ -54,9 +42,9 @@ func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, map[str
 	return user, nil
 }
 
-func (db *Server) GetUser(id uint64) (*entity.User, error) {
+func (r *repositoryUsersCRUD) GetUser(id uint64) (*entity.User, error) {
 	var user entity.User
-	err := db.DB.Debug().Where("id = ?", id).Take(&user).Error
+	err := r.db.Debug().Where("id = ?", id).Take(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +54,10 @@ func (db *Server) GetUser(id uint64) (*entity.User, error) {
 	return &user, nil
 }
 
-func (db *Server) GetUsers() ([]entity.User, error) {
+func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
 	var users []entity.User
 	//err := r.db.Debug().Find(&users).Error
-	err := db.DB.Debug().Find(&users).Error
+	err := r.db.Debug().Find(&users).Error
 	//db.Preload("Orders").Find(&users)
 	if err != nil {
 		return nil, err
@@ -80,10 +68,10 @@ func (db *Server) GetUsers() ([]entity.User, error) {
 	return users, nil
 }
 
-func (db *Server) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
+func (r *repositoryUsersCRUD) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
 	var user entity.User
 	dbErr := map[string]string{}
-	err := db.DB.Debug().Where("email = ?", u.Email).Take(&user).Error
+	err := r.db.Debug().Where("email = ?", u.Email).Take(&user).Error
 	if gorm.IsRecordNotFoundError(err) {
 		dbErr["no_user"] = "user not found"
 		return nil, dbErr

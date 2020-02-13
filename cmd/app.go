@@ -1,9 +1,14 @@
 package cmd
 
 import (
-	"food-app/interfaces"
+	"food-app/cmd/middleware"
+	"food-app/database/rdbms"
+	"food-app/domain/entity"
+	"food-app/utils/token"
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
+	"os"
 )
 //
 func init() {
@@ -12,18 +17,47 @@ func init() {
 	}
 }
 
-var server = interfaces.Server{}
-
+var (
+	router = gin.Default()
+)
 
 func StartApp() {
 
-	server.DBConn()
+	//Connecting to a RDBMS
+	dbdriver := os.Getenv("DB_DRIVER")
+	host := os.Getenv("DB_HOST")
+	password := os.Getenv("DB_PASSWORD")
+	user := os.Getenv("DB_USER")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
 
-	//apiPort := fmt.Sprintf(":%s", os.Getenv("PORT"))
-	//if apiPort == "" {
-	//	apiPort = "8888"
-	//}
-	//fmt.Printf("Listening to port %s", apiPort)
+	conn, err := rdbms.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	if err != nil {
+		log.Fatal("cannot connect to the db: ", err)
+		return
+	}
+	conn.Debug().AutoMigrate(
+		entity.User{},
+		entity.Food{},
+	)
 
-	server.Run(":8888")
+	//Connecting to Redis
+	redis_host := os.Getenv("REDIS_HOST")
+	redis_port := os.Getenv("REDIS_PORT")
+	redis_password := os.Getenv("REDIS_PASSWORD")
+
+	_, err = token.TokenAuth.NewRedisClient(redis_host, redis_port, redis_password)
+	if err != nil {
+		log.Fatal(err)
+	}
+	router.Use(middleware.CORSMiddleware())
+
+	Route()
+
+
+	app_port := os.Getenv("PORT") //using heroku host
+	if app_port == "" {
+		app_port = "8888" //localhost
+	}
+	log.Fatal(router.Run(":"+app_port))
 }

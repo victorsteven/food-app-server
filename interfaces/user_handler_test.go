@@ -13,7 +13,6 @@ import (
 	"testing"
 )
 
-var server = Server{}
 var (
 	userAppSave func(*entity.User) (*entity.User, map[string]string)
 )
@@ -48,7 +47,7 @@ func TestSaveUser_Success(t *testing.T) {
 		}, nil
 	}
 	r := gin.Default()
-	r.POST("/users", server.SaveUser)
+	r.POST("/users", SaveUser)
 	inputJSON := `{
 		"first_name": "victor",
 		"last_name": "steven",
@@ -73,9 +72,32 @@ func TestSaveUser_Success(t *testing.T) {
 	assert.EqualValues(t, user.LastName, "steven")
 }
 
-//We dont need to mock the application layer, because we won't get there. So we will use table test to cover all validation errors
-func Test_SaveUser_InvalidData(t *testing.T) {
+//When instead a string an integer is supplied, When attempting to unmarshal input to the user struct, it will fail
+func Test_SaveUser_Invalid_Input(t *testing.T) {
+	//consider instead of passing a string for  first_name, we passed an integer
+	inputJSON :=  `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`
 
+	r := gin.Default()
+	r.POST("/users", SaveUser)
+	req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(inputJSON))
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	invalidInput :=  ""
+
+	err = json.Unmarshal(rr.Body.Bytes(), &invalidInput)
+	if err != nil {
+		t.Errorf("error unmarshalling error %s\n", err)
+	}
+	assert.Equal(t, rr.Code, 422)
+	assert.Equal(t, invalidInput, "invalid json")
+}
+
+//We dont need to mock the application layer, because we won't get there. So we will use table test to cover all validation errors
+func Test_SaveUser_Invalidating_Data(t *testing.T) {
 	samples := []struct {
 		inputJSON  string
 		statusCode int
@@ -103,7 +125,7 @@ func Test_SaveUser_InvalidData(t *testing.T) {
 	for _, v := range samples {
 
 		r := gin.Default()
-		r.POST("/users", server.SaveUser)
+		r.POST("/users", SaveUser)
 		req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -132,4 +154,36 @@ func Test_SaveUser_InvalidData(t *testing.T) {
 			assert.Equal(t, validationErr["password_required"], "password is required")
 		}
 	}
+}
+
+//One of such db error is invalid email, it return that from the application and test.
+func TestSaveUser_DB_Error(t *testing.T) {
+	application.UserApp = &fakeApp{}
+	userAppSave = func(*entity.User) (*entity.User, map[string]string) {
+		return nil, map[string]string{
+			"email_taken": "email already taken",
+		}
+	}
+	r := gin.Default()
+	r.POST("/users", SaveUser)
+	inputJSON := `{
+		"first_name": "victor",
+		"last_name": "steven",
+		"email": "steven@example.com",
+		"password": "password"
+	}`
+	req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(inputJSON))
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	dbErr := make(map[string]string)
+	err = json.Unmarshal(rr.Body.Bytes(), &dbErr)
+	if err != nil {
+		t.Errorf("cannot unmarshall payload to errMap: %s\n", err)
+	}
+	assert.Equal(t, rr.Code, 500)
+	assert.EqualValues(t, dbErr["email_taken"], "email already taken")
 }
