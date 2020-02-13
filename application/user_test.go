@@ -65,7 +65,7 @@ func TestUserImpl_SaveUser(t *testing.T) {
 		UpdatedAt: time.Now(),
 		DeletedAt: nil,
 	}
-	u, err := UserApp().SaveUser(user)
+	u, err := UserApp.SaveUser(user)
 	fmt.Println(err)
 	fmt.Println(u)
 	//db := rdbms.NewDB()

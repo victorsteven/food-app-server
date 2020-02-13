@@ -12,20 +12,34 @@ import (
 	"strings"
 )
 
-//type repositoryUsersCRUD struct {
-//	db *gorm.DB
-//}
+type repositoryUsersCRUD struct {
+	db *gorm.DB
+}
 
-//func NewUserRepository(db *gorm.DB) repository.UserRepository {
-//	return &repositoryUsersCRUD{db}
-//}
-var UserRepo repository.UserRepository = &Server{}
+var UserRepo repository.UserRepository = &repositoryUsersCRUD{}
 
-func (db *Server) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+func (r *repositoryUsersCRUD) GetUser(uint64) (*entity.User, error) {
+	panic("implement me")
+}
+
+func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
+	panic("implement me")
+}
+
+func (r *repositoryUsersCRUD) GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string) {
+	panic("implement me")
+}
+
+func NewUserRepository(db *gorm.DB) repository.UserRepository {
+	return &repositoryUsersCRUD{db}
+}
+
+//var UserRepo repository.UserRepository = &Server{}
+
+func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	fmt.Println("WE ENTERED")
-	//mine := NewDB()
 	dbErr := map[string]string{}
-	err := db.DB.Debug().Create(&user).Error
+	err := r.db.Debug().Create(&user).Error
 	if err != nil {
 		//If the email is already taken
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {

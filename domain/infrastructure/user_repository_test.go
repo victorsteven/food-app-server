@@ -1,12 +1,21 @@
 package infrastructure
 
 import (
+	"fmt"
 	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"github.com/jinzhu/gorm"
+	"github.com/joho/godotenv"
+	"log"
 	"os"
 	"testing"
 )
+
+func init() {
+	if err := godotenv.Load(os.ExpandEnv("./../../.env")); err != nil {
+		log.Println("no env gotten")
+	}
+}
 
 func Database() (*gorm.DB, error) {
 	dbdriver := os.Getenv("TEST_DB_DRIVER")
@@ -47,8 +56,9 @@ func TestUserRepo_SaveUser(t *testing.T) {
 
 	repo := NewUserRepository(conn)
 
-	u, err := repo.SaveUser(&user)
-	if err != nil {
-		t.Fatalf("want non error, got %#v", err)
+	u, saveErr := repo.SaveUser(&user)
+	if saveErr != nil {
+		t.Fatalf("want non error, got %#v", saveErr)
 	}
+	fmt.Println(u)
 }

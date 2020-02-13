@@ -1,5 +1,6 @@
 package middleware
 
+
 import (
 	"bytes"
 	"food-app/utils/token"
@@ -56,8 +57,3 @@ func MaxSizeAllowed(n int64) gin.HandlerFunc {
 		c.Request.Body = ioutil.NopCloser(buf)
 	}
 }
-
-
-
-
-

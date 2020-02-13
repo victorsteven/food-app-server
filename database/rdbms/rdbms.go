@@ -3,7 +3,9 @@ package rdbms
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql" //postgres database driver
+	//_ "github.com/jinzhu/gorm/dialects/mysql" //postgres database driver
+	//_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
+
 	"log"
 )
 

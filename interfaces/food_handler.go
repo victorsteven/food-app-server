@@ -26,7 +26,7 @@ func SaveFood(c *gin.Context) {
 	}
 	//We we are using a frontend(vuejs), our errors need to have keys for easy checking, so we use a map to hold our errors
 	var saveFoodError = make(map[string]string)
-	
+
 	title := c.PostForm("title")
 	description := c.PostForm("description")
 	if fmt.Sprintf("%T", title) != "string" || fmt.Sprintf("%T", description) != "string" {
@@ -121,7 +121,7 @@ func UpdateFood(c *gin.Context) {
 		food.FoodImage, err = fileupload.Uploader.UploadFile(file)
 		if err != nil {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"upload_err":  err.Error(),
+				"upload_err": err.Error(),
 			})
 			return
 		}
@@ -133,7 +133,7 @@ func UpdateFood(c *gin.Context) {
 	fo, err := application.FoodApp().UpdateFood(food)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"db_err":  "too large: upload an image less than 8MB",
+			"db_err": "too large: upload an image less than 8MB",
 		})
 		return
 	}
@@ -166,10 +166,9 @@ func GetFoodAndCreator(c *gin.Context) {
 		return
 	}
 	foodAndUser := map[string]interface{}{
-		"food": food,
+		"food":    food,
 		"creator": user.PublicUser(),
 	}
-
 	c.JSON(http.StatusOK, foodAndUser)
 }
 

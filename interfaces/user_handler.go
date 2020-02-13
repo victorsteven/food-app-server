@@ -8,13 +8,19 @@ import (
 	"strconv"
 )
 
-func SaveUser(c *gin.Context) {
+func (server *Server) SaveUser(c *gin.Context) {
 	var user entity.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err)
 		return
 	}
-	u, err := application.UserApp.SaveUser(&user)
+	validateErr := user.Validate("")
+	if len(validateErr) > 0 {
+		c.JSON(http.StatusUnprocessableEntity, validateErr)
+		return
+	}
+	app := application.UserImpl{DB: server.DB}
+	u, err := app.SaveUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
