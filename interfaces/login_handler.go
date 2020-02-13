@@ -11,7 +11,7 @@ import (
 func signin(user *entity.User) (map[string]interface{}, map[string]string) {
 	var tokenErr = map[string]string{}
 	//check if the user details are correct:
-	u, err := application.UserApp().GetUserByEmailAndPassword(user)
+	u, err := application.UserApp.GetUserByEmailAndPassword(user)
 	if err != nil {
 		return nil, err
 	}

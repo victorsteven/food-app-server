@@ -14,13 +14,7 @@ func SaveUser(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, err)
 		return
 	}
-	//validate the request:
-	validateErr := user.Validate("")
-	if len(validateErr) > 0 {
-		c.JSON(http.StatusUnprocessableEntity, validateErr)
-		return
-	}
-	u, err := application.UserApp().SaveUser(&user)
+	u, err := application.UserApp.SaveUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -31,7 +25,7 @@ func SaveUser(c *gin.Context) {
 func GetUsers(c *gin.Context) {
 	us := entity.Users{} //customize user
 	var err error
-	us, err = application.UserApp().GetUsers()
+	us, err = application.UserApp.GetUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -45,7 +39,7 @@ func GetUser(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	user, err := application.UserApp().GetUser(userId)
+	user, err := application.UserApp.GetUser(userId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return

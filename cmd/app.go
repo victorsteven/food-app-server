@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"food-app/cmd/middleware"
-	"food-app/database/rdbms"
 	"food-app/domain/entity"
+	"food-app/domain/infrastructure"
 	"food-app/utils/token"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -30,13 +30,34 @@ func StartApp() {
 	user := os.Getenv("DB_USER")
 	dbname := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
+	//
+	//conn, err := rdbms.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	//if err != nil {
+	//	log.Fatal("cannot connect to the db: ", err)
+	//	return
+	//}
 
-	conn, err := rdbms.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	//var server = infrastructure.Server{}
+	//
+	//db, err := server.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	//if err != nil {
+	//	log.Fatal("cannot connect to the db: ", err)
+	//	return
+	//}
+
+	//db, err := infrastructure.UserRepo.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	//if err != nil {
+	//	log.Fatal("cannot connect to the db: ", err)
+	//	return
+	//}
+
+	s, err := infrastructure.NewDBConnection(dbdriver, user, password, port, host, dbname)
 	if err != nil {
 		log.Fatal("cannot connect to the db: ", err)
 		return
 	}
-	conn.Debug().AutoMigrate(
+
+	s.DB.Debug().AutoMigrate(
 		entity.User{},
 		entity.Food{},
 	)

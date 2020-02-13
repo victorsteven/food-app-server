@@ -5,6 +5,7 @@ import (
 	"food-app/domain/entity"
 	"github.com/jinzhu/gorm"
 	"os"
+	"testing"
 )
 
 func Database() (*gorm.DB, error) {
@@ -32,22 +33,22 @@ func Database() (*gorm.DB, error) {
 	return conn, nil
 }
 
-//func TestUserRepo_SaveUser(t *testing.T) {
-//	conn, err := Database()
-//	if err != nil {
-//		t.Fatalf("want non error, got %#v", err)
-//	}
-//	var user = entity.User{}
-//	user.ID = 1
-//	user.Email = "manaan@gmail.com"
-//	user.FirstName = "Kedu"
-//	user.LastName = "Manner"
-//	user.Password = "password"
-//
-//	repo := NewUserRepository(conn)
-//
-//	u, err := repo.SaveUser(&user)
-//	if err != nil {
-//		t.Fatalf("want non error, got %#v", err)
-//	}
-//}
+func TestUserRepo_SaveUser(t *testing.T) {
+	conn, err := Database()
+	if err != nil {
+		t.Fatalf("want non error, got %#v", err)
+	}
+	var user = entity.User{}
+	user.ID = 1
+	user.Email = "manaan@gmail.com"
+	user.FirstName = "Kedu"
+	user.LastName = "Manner"
+	user.Password = "password"
+
+	repo := NewUserRepository(conn)
+
+	u, err := repo.SaveUser(&user)
+	if err != nil {
+		t.Fatalf("want non error, got %#v", err)
+	}
+}

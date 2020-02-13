@@ -160,7 +160,7 @@ func GetFoodAndCreator(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	user, err := application.UserApp().GetUser(food.UserID)
+	user, err := application.UserApp.GetUser(food.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
