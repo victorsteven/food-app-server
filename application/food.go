@@ -21,40 +21,34 @@ type FoodAppInterface interface {
 	DeleteFood(uint64) error
 }
 
-//GetUser returns a user
-//func (u *UserImpl) GetFood(id uint64) (*entity.User, error) {
-//	//return u.Repository.GetUser(id)
-//	return nil, nil
-//}
 
 func (u *FoodImpl) SaveFood(food *entity.Food) (*entity.Food, error) {
 	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
+	conn := infrastructure.NewRepositoryFood(db)
 	//u, err := entity.User{}
 	return conn.SaveFood(food)
 }
 
 func (u *FoodImpl) GetAllFood() ([]entity.Food, error) {
 	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
+	conn := infrastructure.NewRepositoryFood(db)
 	return conn.GetAllFood()
 }
 
 func (u *FoodImpl) GetFood(foodId uint64) (*entity.Food, error) {
 	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
+	conn := infrastructure.NewRepositoryFood(db)
 	return conn.GetFood(foodId)
 }
 
 func (u *FoodImpl) UpdateFood(food *entity.Food) (*entity.Food, error) {
 	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
+	conn := infrastructure.NewRepositoryFood(db)
 	return conn.UpdateFood(food)
 }
 
-
 func (u *FoodImpl) DeleteFood(foodId uint64) error {
 	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
+	conn := infrastructure.NewRepositoryFood(db)
 	return conn.DeleteFood(foodId)
 }

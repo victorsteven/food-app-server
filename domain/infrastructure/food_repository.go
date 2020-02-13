@@ -4,19 +4,20 @@ import (
 	"errors"
 	"fmt"
 	"food-app/domain/entity"
+	"food-app/domain/repository"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 )
 
-type repositoryFoodCRUD struct {
+type repositoryFood struct {
 	db *gorm.DB
 }
 
-func NewRepositoryFoodCRUD(db *gorm.DB) *repositoryFoodCRUD {
-	return &repositoryFoodCRUD{db}
+func NewRepositoryFood(db *gorm.DB) repository.FoodRepository {
+	return &repositoryFood{db}
 }
 
-func (r *repositoryFoodCRUD) SaveFood(food *entity.Food) (*entity.Food, error) {
+func (r *repositoryFood) SaveFood(food *entity.Food) (*entity.Food, error) {
 	err := r.db.Debug().Create(&food).Error
 	if err != nil {
 		return nil, err
@@ -24,7 +25,7 @@ func (r *repositoryFoodCRUD) SaveFood(food *entity.Food) (*entity.Food, error) {
 	return food, nil
 }
 
-func (r *repositoryFoodCRUD) GetFood(id uint64) (*entity.Food, error) {
+func (r *repositoryFood) GetFood(id uint64) (*entity.Food, error) {
 	var food entity.Food
 	err := r.db.Debug().Where("id = ?", id).Take(&food).Error
 	if err != nil {
@@ -37,7 +38,7 @@ func (r *repositoryFoodCRUD) GetFood(id uint64) (*entity.Food, error) {
 	return &food, nil
 }
 
-func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
+func (r *repositoryFood) GetAllFood() ([]entity.Food, error) {
 	var foods []entity.Food
 	err := r.db.Debug().Limit(100).Order("created_at desc").Find(&foods).Error
 	if err != nil {
@@ -49,7 +50,7 @@ func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
 	return foods, nil
 }
 
-func (r *repositoryFoodCRUD) UpdateFood(food *entity.Food) (*entity.Food, error) {
+func (r *repositoryFood) UpdateFood(food *entity.Food) (*entity.Food, error) {
 	err := r.db.Debug().Save(&food).Error
 	if err != nil {
 		return nil, err
@@ -57,7 +58,7 @@ func (r *repositoryFoodCRUD) UpdateFood(food *entity.Food) (*entity.Food, error)
 	return food, nil
 }
 
-func (r *repositoryFoodCRUD) DeleteFood(id uint64) error {
+func (r *repositoryFood) DeleteFood(id uint64) error {
 	var food entity.Food
 	err := r.db.Debug().Where("id = ?", id).Delete(&food).Error
 	if err != nil {

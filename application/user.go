@@ -1,18 +1,37 @@
 package application
 
 import (
-	"food-app/database/rdbms"
+	"fmt"
+	//"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/infrastructure"
+	"github.com/jinzhu/gorm"
 )
 
 type UserImpl struct {
+	DB *gorm.DB
 	//Repository repository.UserRepository
+}
+
+func (u *UserImpl) GetUsers() ([]entity.User, error) {
+	panic("implement me")
+}
+
+func (u *UserImpl) GetUser(uint64) (*entity.User, error) {
+	panic("implement me")
+}
+
+func (u *UserImpl) GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string) {
+	panic("implement me")
 }
 
 func UserApp() UserAppInterface {
 	return &UserImpl{}
 }
+
+//func DB(db *gorm.DB)  *gorm.DB {
+//	return UserImpl{db}
+//}
 
 type UserAppInterface interface {
 	SaveUser(*entity.User) (*entity.User, map[string]string)
@@ -21,37 +40,34 @@ type UserAppInterface interface {
 	GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string)
 }
 
-//GetUser returns a user
-//func (u *UserImpl) GetUser(id uint64) (*entity.User, error) {
-//	//return u.Repository.GetUser(id)
-//	return nil, nil
-//}
-
 func (u *UserImpl) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryUsersCRUD(db)
-	return conn.SaveUser(user)
+	fmt.Println("THE APPLICATION")
+	//db := rdbms.NewDB()
+	//conn := infrastructure.NewRepositoryUser(u.DB)
+	//return repository.GetUserRepository().SaveUser(user)
+	return infrastructure.UserRepo.SaveUser(user)
+
 }
 
-func (u *UserImpl) GetUser(userId uint64) (*entity.User, error) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryUsersCRUD(db)
-	return conn.GetUser(userId)
-}
-
-func (u *UserImpl) GetUsers() ([]entity.User, error) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryUsersCRUD(db)
-	//u, err := entity.User{}
-	return conn.GetUsers()
-}
-
-func (u *UserImpl) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryUsersCRUD(db)
-	foundUser, err := conn.GetUserByEmailAndPassword(user)
-	if err != nil {
-		return nil, err
-	}
-	return foundUser, nil
-}
+//func (u *UserImpl) GetUser(userId uint64) (*entity.User, error) {
+//	db := rdbms.NewDB()
+//	conn := infrastructure.NewRepositoryUser(db)
+//	return conn.GetUser(userId)
+//}
+//
+//func (u *UserImpl) GetUsers() ([]entity.User, error) {
+//	db := rdbms.NewDB()
+//	conn := infrastructure.NewRepositoryUser(db)
+//	//u, err := entity.User{}
+//	return conn.GetUsers()
+//}
+//
+//func (u *UserImpl) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
+//	db := rdbms.NewDB()
+//	conn := infrastructure.NewRepositoryUser(db)
+//	foundUser, err := conn.GetUserByEmailAndPassword(user)
+//	if err != nil {
+//		return nil, err
+//	}
+//	return foundUser, nil
+//}

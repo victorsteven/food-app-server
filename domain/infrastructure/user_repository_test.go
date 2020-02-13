@@ -1,53 +1,62 @@
 package infrastructure
 
 import (
-	"food-app/database/rdbms"
 	"food-app/domain/entity"
-	"github.com/jinzhu/gorm"
-	"os"
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"testing"
 )
 
-func Database() (*gorm.DB, error) {
-	dbdriver := os.Getenv("TEST_DB_DRIVER")
-	host := os.Getenv("TEST_DB_HOST")
-	password := os.Getenv("TEST_DB_PASSWORD")
-	user := os.Getenv("TEST_DB_USER")
-	dbname := os.Getenv("TEST_DB_NAME")
-	port := os.Getenv("TEST_DB_PORT")
+//This test involve database interaction.
+//So, we will test for success and failure due to duplicate email
+//Take note that is not the layer we validate the input, what we are strictly interested here is hitting the database
+func TestUserRepo_SaveUser(t *testing.T) {
+	//refresh the database:
+	err := refreshUserTable()
+	if err != nil {
+		t.Fatalf("want non error, got %#v", err)
+	}
+	sampleData := []struct{
+		user *entity.User
+		ErrMsg map[string]string
+		StatusCode int
+	}{
+		{
+			//Everything goes well
+			user: &entity.User{
+				FirstName: "Kobe",
+				LastName: "Byrant",
+				Email: 	"kobe@example.com",
+				Password: "password",
+			},
+			ErrMsg: nil,
+			StatusCode: http.StatusCreated,
+		},
+		{
+			//An attempt to register with the same email
+			user: &entity.User{
+				FirstName: "Michael",
+				LastName: "Jordan",
+				Email: 	"kobe@example.com",
+				Password: "password",
+			},
+			ErrMsg: map[string]string{
+				"email_taken": "email already taken",
+			},
+			StatusCode: http.StatusInternalServerError,
+		},
+	}
+	for _, v := range sampleData {
+		repo := NewRepositoryUser(server.db)
+		u, saveErr := repo.SaveUser(v.user)
 
-	conn, err := rdbms.NewDBConnection(dbdriver, user, password, port, host, dbname)
-	if err != nil {
-		return nil, err
+		assert.EqualValues(t, saveErr, v.ErrMsg)
+
+		if v.StatusCode == http.StatusCreated {
+			assert.EqualValues(t, u, v.user)
+		} else { //status of 500, etc
+			dupEmail := map[string]string{"email_taken": "email already taken"}
+			assert.EqualValues(t,  dupEmail, v.ErrMsg)
+		}
 	}
-	err = conn.DropTableIfExists(&entity.User{}).Error
-	if err != nil {
-		return nil, err
-	}
-	err = conn.Debug().AutoMigrate(
-		entity.User{},
-	).Error
-	if err != nil {
-		return nil, err
-	}
-	return conn, nil
 }
-
-//func TestUserRepo_SaveUser(t *testing.T) {
-//	conn, err := Database()
-//	if err != nil {
-//		t.Fatalf("want non error, got %#v", err)
-//	}
-//	var user = entity.User{}
-//	user.ID = 1
-//	user.Email = "manaan@gmail.com"
-//	user.FirstName = "Kedu"
-//	user.LastName = "Manner"
-//	user.Password = "password"
-//
-//	repo := NewUserRepository(conn)
-//
-//	u, err := repo.SaveUser(&user)
-//	if err != nil {
-//		t.Fatalf("want non error, got %#v", err)
-//	}
-//}

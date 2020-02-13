@@ -149,40 +149,39 @@ func GetAllFood(c *gin.Context) {
 	c.JSON(http.StatusOK, allfood)
 }
 
-func GetFoodAndCreator(c *gin.Context) {
-	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, "invalid request")
-		return
-	}
-	food, err := application.FoodApp().GetFood(foodId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-	user, err := application.UserApp().GetUser(food.UserID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-	foodAndUser := map[string]interface{}{
-		"food": food,
-		"creator": user.PublicUser(),
-	}
-
-	c.JSON(http.StatusOK, foodAndUser)
-}
-
-func DeleteFood(c *gin.Context) {
-	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, "invalid request")
-		return
-	}
-	err = application.FoodApp().DeleteFood(foodId)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
-		return
-	}
-	c.JSON(http.StatusOK, "food deleted")
-}
+//func GetFoodAndCreator(c *gin.Context) {
+//	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
+//	if err != nil {
+//		c.JSON(http.StatusBadRequest, "invalid request")
+//		return
+//	}
+//	food, err := application.FoodApp().GetFood(foodId)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, err.Error())
+//		return
+//	}
+//	user, err := application.UserApp().GetUser(food.UserID)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, err.Error())
+//		return
+//	}
+//	foodAndUser := map[string]interface{}{
+//		"food": food,
+//		"creator": user.PublicUser(),
+//	}
+//	c.JSON(http.StatusOK, foodAndUser)
+//}
+//
+//func DeleteFood(c *gin.Context) {
+//	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
+//	if err != nil {
+//		c.JSON(http.StatusBadRequest, "invalid request")
+//		return
+//	}
+//	err = application.FoodApp().DeleteFood(foodId)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, err.Error())
+//		return
+//	}
+//	c.JSON(http.StatusOK, "food deleted")
+//}

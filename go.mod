@@ -13,6 +13,7 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/myesui/uuid v1.0.0 // indirect
 	github.com/pilagod/gorm-cursor-paginator v1.2.0
+	github.com/stretchr/testify v1.4.0
 	github.com/twinj/uuid v1.0.0
 	github.com/vcraescu/go-paginator v0.0.0-20190303111026-ea6b7cb2aa93
 	golang.org/x/crypto v0.0.0-20191205180655-e7c4368fe9dd
