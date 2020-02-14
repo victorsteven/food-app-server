@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"errors"
-	"fmt"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 	"food-app/utils/security"
@@ -25,7 +24,6 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 //var UserRepo repository.UserRepository = &Server{}
 
 func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	fmt.Println("WE ENTERED")
 	dbErr := map[string]string{}
 	err := r.db.Debug().Create(&user).Error
 	if err != nil {
@@ -35,7 +33,6 @@ func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, map[str
 			return nil, dbErr
 		}
 		//any other db error
-		fmt.Println("error: ", err)
 		dbErr["db_error"] = "database error"
 		return nil, dbErr
 	}

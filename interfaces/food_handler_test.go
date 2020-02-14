@@ -2,6 +2,7 @@ package interfaces
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
@@ -10,14 +11,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"os"
-	"strconv"
 	"testing"
 )
 
@@ -79,68 +79,100 @@ func mustOpen(f string) *os.File {
 
 
 func TestSaverFood_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{}
+	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
 	token.TokenAuth = &fakeAuth{}
 	fileupload.Uploader = &fakeUploader{}
-	saveFoodApp = func(*entity.Food) (*entity.Food, map[string]string) {
-		//remember we are running sensitive info such as email and password
+
+	//Mocking The Food return from db
+	saveFoodApp = func(*entity.Food) (*entity.Food, error) {
 		return &entity.Food{
 			ID:        1,
-			UserID:    14,
+			UserID:    1,
 			Title: "Food title",
 			Description:  "Food description",
+			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
+
 		}, nil
 	}
+	//Mocking the fetching of token metadata from redis
 	fetchAuth = func(ad *token.AccessDetails) (uint64, error){
 		return 1, nil
 	}
+	//Mocking file upload to DigitalOcean
 	uploadFile = func(file *multipart.FileHeader) (string, error) {
-		return "dbdbfdhbfhbfy3434jhfd.jpg", nil
+		return "dbdbf-dhbfh-bfy34-34jh-fd.jpg", nil //this is fabricated
 	}
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjYzZjJjNGQyLWFlN2UtNDNmZS05MmNlLWM1Y2VkODgwZTVmOCIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU4MTY5MjA0NCwidXNlcl9pZCI6MTR9.PHLm7XfQa0gvBoSxSEY73S0cwsBx6bocBhBisGYErXg"
+
+	f :=  "./../utils/images/amala.jpg" //this is where the image is located
+	file, err := os.Open(f)
+	if err != nil {
+		t.Errorf("Cannot open file: %s\n", err)
+	}
+	defer file.Close()
+
+	//Create a buffer to store our request body as bytes
+	var requestBody bytes.Buffer
+
+	//Create a multipart writer
+	multipartWriter := multipart.NewWriter(&requestBody)
+
+	//Initialize the file field
+	fileWriter, err := multipartWriter.CreateFormFile("food_image", "amala.jpg")
+	if err != nil {
+		t.Errorf("Cannot write file: %s\n", err)
+	}
+	//Copy the actual content to the file field's writer, though this is not needed, since files are sent to DigitalOcean
+	_, err = io.Copy(fileWriter, file)
+	if err != nil {
+		t.Errorf("Cannot copy file: %s\n", err)
+	}
+	//Add the title and the description fields
+	fileWriter, err = multipartWriter.CreateFormField("title")
+	if err != nil {
+		t.Errorf("Cannot write title: %s\n", err)
+	}
+	_, err = fileWriter.Write([]byte("Food title"))
+	if err != nil {
+		t.Errorf("Cannot write title value: %s\n", err)
+	}
+	fileWriter, err = multipartWriter.CreateFormField("description")
+	if err != nil {
+		t.Errorf("Cannot write description: %s\n", err)
+	}
+	_, err = fileWriter.Write([]byte("Food description"))
+	if err != nil {
+		t.Errorf("Cannot write description value: %s\n", err)
+	}
+	//Close the multipart writer so it writes the ending boundary
+	multipartWriter.Close()
+
+	//use a valid token that has not expired. This token was created to live forever, just for test purposes with the user id of 1. This is so that it can always be used to run tests
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
+
 	tokenString := fmt.Sprintf("Bearer %v", token)
 
-	file, w := createMultipartFormData(t, "food_image", "amala.jpg")
-
-	data := url.Values{}
-
-	//data := url.
-	//data.Add("title", "Food title")
-	//data.Add("description", "Food description")
-	//data.Add("food_image", file.String())
-	r := gin.Default()
-	r.POST("/food", SaveFood)
-
-	//req, err := http.NewRequest(http.MethodPost, "/food", strings.NewReader(data.Encode()))
-	req, err := http.NewRequest(http.MethodPost, "/food", &file)
-
+	req, err := http.NewRequest(http.MethodPost, "/food", &requestBody)
 	if err != nil {
 		t.Errorf("this is the error: %v\n", err)
 	}
-	//req.Form = data
-
+	r := gin.Default()
+	r.POST("/food", SaveFood)
 	req.Header.Set("Authorization", tokenString)
-	//req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Add("Content-Type", "multipart/form-data")
-	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
-	// Don't forget to set the content type, this will contain the boundary.
-	req.Header.Set("Content-Type", w.FormDataContentType())
-
-	//fmt.Println("The request: ", req.Header)
-
+	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
-	//food := &entity.Food{}
-
-	//err = json.Unmarshal(rr.Body.Bytes(), &food)
-	//fmt.Println("error: ", err)
-	fmt.Println("response: ", string(rr.Body.Bytes()))
-	//fmt.Println("food: ", food)
-
-	//assert.Equal(t, rr.Code, 201)
-	//assert.EqualValues(t, user.FirstName, "victor")
-	//assert.EqualValues(t, user.LastName, "steven")
+	var food = entity.Food{}
+	err = json.Unmarshal(rr.Body.Bytes(), &food)
+	if err != nil {
+		t.Errorf("cannot unmarshal response: %v\n", err)
+	}
+	assert.Equal(t, rr.Code, 201)
+	assert.EqualValues(t, food.ID, 1)
+	assert.EqualValues(t, food.UserID, 1)
+	assert.EqualValues(t, food.Title, "Food title")
+	assert.EqualValues(t, food.Description, "Food description")
+	assert.EqualValues(t, food.FoodImage, "dbdbf-dhbfh-bfy34-34jh-fd.jpg")
 }
 
 

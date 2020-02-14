@@ -9,7 +9,7 @@ var (
 	getUserEmailPasswordApp func(*entity.User) (*entity.User, map[string]string)
 
 	//redisCreateAuth
-	saveFoodApp func(*entity.Food) (*entity.Food, map[string]string)
+	saveFoodApp func(*entity.Food) (*entity.Food, error)
 	//getUsersApp func() ([]entity.User, error)
 	//getUserApp func(uint64) (*entity.User, error)
 	//getUserEmailPasswordApp func(*entity.User) (*entity.User, map[string]string)
@@ -34,8 +34,8 @@ func (fa *fakeUserApp) SaveUser(user *entity.User) (*entity.User, map[string]str
 }
 
 
-func (f *fakeFoodApp) SaveFood(*entity.Food) (*entity.Food, error) {
-	panic("implement me")
+func (f *fakeFoodApp) SaveFood(food *entity.Food) (*entity.Food, error) {
+	return saveFoodApp(food)
 }
 
 func (f *fakeFoodApp) GetAllFood() ([]entity.Food, error) {

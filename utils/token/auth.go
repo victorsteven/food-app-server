@@ -47,6 +47,38 @@ type TokenDetails struct {
 	RtExpires    int64
 }
 
+//func CreateToken(userid uint64) (*TokenDetails, error) {
+//	td := &TokenDetails{}
+//	td.AtExpires = time.Now().Add(time.Minute * 60).Unix()
+//	td.AccessUuid = uuid.NewV4().String()
+//
+//	td.RtExpires = time.Now().Add(time.Hour * 24 * 7).Unix()
+//	td.RefreshUuid = uuid.NewV4().String()
+//
+//	var err error
+//	//Creating Access Token
+//	atClaims := jwt.MapClaims{}
+//	atClaims["authorized"] = true
+//	atClaims["access_uuid"] = td.AccessUuid
+//	atClaims["user_id"] = 1
+//	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
+//	td.AccessToken, err = at.SignedString([]byte(os.Getenv("API_SECRET")))
+//	if err != nil {
+//		return nil, err
+//	}
+//	//Creating Refresh Token
+//	rtClaims := jwt.MapClaims{}
+//	rtClaims["refresh_uuid"] = td.RefreshUuid
+//	rtClaims["user_id"] = userid
+//	rtClaims["exp"] = td.RtExpires
+//	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
+//	td.RefreshToken, err = rt.SignedString([]byte(os.Getenv("API_SECRET_REFRESH")))
+//	if err != nil {
+//		return nil, err
+//	}
+//	return td, nil
+//}
+
 func CreateToken(userid uint64) (*TokenDetails, error) {
 	td := &TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 60).Unix()
@@ -113,7 +145,6 @@ func TokenValid(r *http.Request) error {
 
 func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	tokenString := ExtractToken(r)
-	fmt.Println("token string: ", tokenString)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		//Make sure that the token method conform to "SigningMethodHMAC"
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -122,7 +153,6 @@ func VerifyToken(r *http.Request) (*jwt.Token, error) {
 		return []byte(os.Getenv("API_SECRET")), nil
 	})
 	if err != nil {
-		fmt.Println("err here: ", err)
 		return nil, err
 	}
 	return token, nil

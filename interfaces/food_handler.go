@@ -13,6 +13,8 @@ import (
 )
 
 func SaveFood(c *gin.Context) {
+
+	fmt.Println("the content type: ", c.Request.Header.Get("Content-Type"))
 	//check is the user is authenticated first
 	tokenAuth, err := token.ExtractTokenMetadata(c.Request)
 	if err != nil {
@@ -24,23 +26,24 @@ func SaveFood(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	fmt.Println("user id: ", userId)
 	//We we are using a frontend(vuejs), our errors need to have keys for easy checking, so we use a map to hold our errors
 	var saveFoodError = make(map[string]string)
+
 	title := c.PostForm("title")
 	description := c.PostForm("description")
 	if fmt.Sprintf("%T", title) != "string" || fmt.Sprintf("%T", description) != "string" {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json")
 	}
 	//We initialize a new food for the purpose of validating: in case the payload is empty or an invalid data type is used
-	//emptyFood := entity.Food{}
-	//emptyFood.Title = title
-	//emptyFood.Description = description
-	//saveFoodError = emptyFood.Validate("")
-	//if len(saveFoodError) > 0 {
-	//	c.JSON(http.StatusUnprocessableEntity, saveFoodError)
-	//	return
-	//}
+	fmt.Println("the title: ", title)
+	emptyFood := entity.Food{}
+	emptyFood.Title = title
+	emptyFood.Description = description
+	saveFoodError = emptyFood.Validate("")
+	if len(saveFoodError) > 0 {
+		c.JSON(http.StatusUnprocessableEntity, saveFoodError)
+		return
+	}
 	file, err := c.FormFile("food_image")
 	if err != nil {
 		saveFoodError["invalid_file"] = "a valid file is required"
@@ -54,17 +57,17 @@ func SaveFood(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, saveFoodError)
 		return
 	}
-	//var food = entity.Food{}
-	//food.UserID = userId
-	//food.Title = title
-	//food.Description = description
-	//food.FoodImage = uploadedFile
-	//fo, err := application.FoodApp.SaveFood(&food)
-	//if err != nil {
-	//	c.JSON(http.StatusInternalServerError, err.Error())
-	//	return
-	//}
-	c.JSON(http.StatusCreated, uploadedFile)
+	var food = entity.Food{}
+	food.UserID = userId
+	food.Title = title
+	food.Description = description
+	food.FoodImage = uploadedFile
+	fo, err := application.FoodApp.SaveFood(&food)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusCreated, fo)
 }
 
 func UpdateFood(c *gin.Context) {
