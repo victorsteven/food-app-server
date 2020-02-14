@@ -2,244 +2,145 @@ package interfaces
 
 import (
 	"bytes"
-	"encoding/json"
+	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
+	"food-app/utils/fileupload"
+	"food-app/utils/token"
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
+	"github.com/go-redis/redis/v7"
+	"github.com/joho/godotenv"
+	"io"
+	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"os"
+	"strconv"
 	"testing"
 )
 
+func TestMain(m *testing.M) {
+	if err := godotenv.Load(os.ExpandEnv("./../.env")); err != nil {
+		log.Println("no env gotten")
+	}
+	os.Exit(m.Run())
+}
+
+var (
+	fetchAuth func(ad *token.AccessDetails) (uint64, error)
+	uploadFile func(file *multipart.FileHeader) (string, error)
+)
+type fakeAuth struct {}
+type fakeUploader struct {}
+
+func (f *fakeUploader) UploadFile(newname *multipart.FileHeader) (string, error) {
+	return uploadFile(newname)
+}
+
+func (f *fakeAuth) CreateAuth(uint64, *token.TokenDetails) error {
+	panic("implement me")
+}
+
+func (f *fakeAuth) NewRedisClient(host, port, password string) (*redis.Client, error) {
+	panic("implement me")
+}
+
+func (f *fakeAuth) FetchAuth(ad *token.AccessDetails) (uint64, error){
+	return fetchAuth(ad)
+}
+
+func createMultipartFormData(t *testing.T, fieldName, fileName string) (bytes.Buffer, *multipart.Writer) {
+	var b bytes.Buffer
+	var err error
+	w := multipart.NewWriter(&b)
+	var fw io.Writer
+	file := mustOpen(fileName)
+	if fw, err = w.CreateFormFile(fieldName, file.Name()); err != nil {
+		t.Errorf("Error creating writer: %v", err)
+	}
+	if _, err = io.Copy(fw, file); err != nil {
+		t.Errorf("Error with io.Copy: %v", err)
+	}
+	w.Close()
+	return b, w
+}
+
+func mustOpen(f string) *os.File {
+	r, err := os.Open(f)
+	if err != nil {
+		pwd, _ := os.Getwd()
+		fmt.Println("PWD: ", pwd)
+		panic(err)
+	}
+	return r
+}
 
 
 func TestSaverFood_Success(t *testing.T) {
 	application.FoodApp = &fakeFoodApp{}
+	token.TokenAuth = &fakeAuth{}
+	fileupload.Uploader = &fakeUploader{}
 	saveFoodApp = func(*entity.Food) (*entity.Food, map[string]string) {
 		//remember we are running sensitive info such as email and password
-		return &entity.User{
+		return &entity.Food{
 			ID:        1,
-			FirstName: "victor",
-			LastName:  "steven",
+			UserID:    14,
+			Title: "Food title",
+			Description:  "Food description",
 		}, nil
 	}
+	fetchAuth = func(ad *token.AccessDetails) (uint64, error){
+		return 1, nil
+	}
+	uploadFile = func(file *multipart.FileHeader) (string, error) {
+		return "dbdbfdhbfhbfy3434jhfd.jpg", nil
+	}
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjYzZjJjNGQyLWFlN2UtNDNmZS05MmNlLWM1Y2VkODgwZTVmOCIsImF1dGhvcml6ZWQiOnRydWUsImV4cCI6MTU4MTY5MjA0NCwidXNlcl9pZCI6MTR9.PHLm7XfQa0gvBoSxSEY73S0cwsBx6bocBhBisGYErXg"
+	tokenString := fmt.Sprintf("Bearer %v", token)
+
+	file, w := createMultipartFormData(t, "food_image", "amala.jpg")
+
+	data := url.Values{}
+
+	//data := url.
+	//data.Add("title", "Food title")
+	//data.Add("description", "Food description")
+	//data.Add("food_image", file.String())
 	r := gin.Default()
-	r.POST("/users", SaveUser)
-	inputJSON := `{
-		"first_name": "victor",
-		"last_name": "steven",
-		"email": "steven@example.com",
-		"password": "password"
-	}`
-	req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(inputJSON))
+	r.POST("/food", SaveFood)
+
+	//req, err := http.NewRequest(http.MethodPost, "/food", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest(http.MethodPost, "/food", &file)
+
 	if err != nil {
 		t.Errorf("this is the error: %v\n", err)
 	}
+	//req.Form = data
+
+	req.Header.Set("Authorization", tokenString)
+	//req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Content-Type", "multipart/form-data")
+	req.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+	// Don't forget to set the content type, this will contain the boundary.
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	//fmt.Println("The request: ", req.Header)
+
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
-	user := &entity.User{}
+	//food := &entity.Food{}
 
-	err = json.Unmarshal(rr.Body.Bytes(), &user)
+	//err = json.Unmarshal(rr.Body.Bytes(), &food)
+	//fmt.Println("error: ", err)
+	fmt.Println("response: ", string(rr.Body.Bytes()))
+	//fmt.Println("food: ", food)
 
-	assert.Equal(t, rr.Code, 201)
-	assert.EqualValues(t, user.FirstName, "victor")
-	assert.EqualValues(t, user.LastName, "steven")
+	//assert.Equal(t, rr.Code, 201)
+	//assert.EqualValues(t, user.FirstName, "victor")
+	//assert.EqualValues(t, user.LastName, "steven")
 }
 
-
-////When instead a string an integer is supplied, When attempting to unmarshal input to the user struct, it will fail
-//func Test_SaveUser_Invalid_Input(t *testing.T) {
-//	//consider instead of passing a string for  first_name, we passed an integer
-//	inputJSON :=  `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`
-//
-//	r := gin.Default()
-//	r.POST("/users", SaveUser)
-//	req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(inputJSON))
-//	if err != nil {
-//		t.Errorf("this is the error: %v\n", err)
-//	}
-//	rr := httptest.NewRecorder()
-//	r.ServeHTTP(rr, req)
-//
-//	invalidInput :=  ""
-//
-//	err = json.Unmarshal(rr.Body.Bytes(), &invalidInput)
-//	if err != nil {
-//		t.Errorf("error unmarshalling error %s\n", err)
-//	}
-//	assert.Equal(t, rr.Code, 422)
-//	assert.Equal(t, invalidInput, "invalid json")
-//}
-//
-////We dont need to mock the application layer, because we won't get there. So we will use table test to cover all validation errors
-//func Test_SaveUser_Invalidating_Data(t *testing.T) {
-//	samples := []struct {
-//		inputJSON  string
-//		statusCode int
-//	}{
-//		{
-//			inputJSON:  `{"first_name": "", "last_name": "steven","email": "steven@example.com","password": "password"}`,
-//			statusCode: 422,
-//		},
-//		{
-//			inputJSON:  `{"first_name": "victor", "last_name": "","email": "steven@example.com","password": "password"}`,
-//			statusCode: 422,
-//		},
-//		{
-//			inputJSON:  `{"first_name": "victor", "last_name": "steven","email": "","password": "password"}`,
-//			statusCode: 422,
-//		},
-//		{
-//			inputJSON:  `{"first_name": "victor", "last_name": "steven","email": "steven@example.com","password": ""}`,
-//			statusCode: 422,
-//		},
-//		{
-//			//invalid email
-//			inputJSON:  `{"email": "stevenexample.com","password": ""}`,
-//			statusCode: 422,
-//		},
-//	}
-//
-//	for _, v := range samples {
-//
-//		r := gin.Default()
-//		r.POST("/users", SaveUser)
-//		req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(v.inputJSON))
-//		if err != nil {
-//			t.Errorf("this is the error: %v\n", err)
-//		}
-//		rr := httptest.NewRecorder()
-//		r.ServeHTTP(rr, req)
-//
-//		validationErr := make(map[string]string)
-//
-//		err = json.Unmarshal(rr.Body.Bytes(), &validationErr)
-//		if err != nil {
-//			t.Errorf("error unmarshalling error %s\n", err)
-//		}
-//		assert.Equal(t, rr.Code, v.statusCode)
-//
-//		if validationErr["email_required"] != "" {
-//			assert.Equal(t, validationErr["email_required"], "email is required")
-//		}
-//		if validationErr["invalid_email"] != "" {
-//			assert.Equal(t, validationErr["invalid_email"], "please provide a valid email")
-//		}
-//		if validationErr["firstname_required"] != "" {
-//			assert.Equal(t, validationErr["firstname_required"], "first name is required")
-//		}
-//		if validationErr["lastname_required"] != "" {
-//			assert.Equal(t, validationErr["lastname_required"], "last name is required")
-//		}
-//		if validationErr["password_required"] != "" {
-//			assert.Equal(t, validationErr["password_required"], "password is required")
-//		}
-//	}
-//}
-//
-////One of such db error is invalid email, it return that from the application and test.
-//func TestSaveUser_DB_Error(t *testing.T) {
-//	application.UserApp = &fakeApp{}
-//	saveUserApp = func(*entity.User) (*entity.User, map[string]string) {
-//		return nil, map[string]string{
-//			"email_taken": "email already taken",
-//		}
-//	}
-//	r := gin.Default()
-//	r.POST("/users", SaveUser)
-//	inputJSON := `{
-//		"first_name": "victor",
-//		"last_name": "steven",
-//		"email": "steven@example.com",
-//		"password": "password"
-//	}`
-//	req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(inputJSON))
-//	if err != nil {
-//		t.Errorf("this is the error: %v\n", err)
-//	}
-//	rr := httptest.NewRecorder()
-//	r.ServeHTTP(rr, req)
-//
-//	dbErr := make(map[string]string)
-//	err = json.Unmarshal(rr.Body.Bytes(), &dbErr)
-//	if err != nil {
-//		t.Errorf("cannot unmarshall payload to errMap: %s\n", err)
-//	}
-//	assert.Equal(t, rr.Code, 500)
-//	assert.EqualValues(t, dbErr["email_taken"], "email already taken")
-//}
-//////////////////////////////////////////////////////////////////
-//
-//
-////GetUsers Test
-//func TestGetUsers_Success(t *testing.T) {
-//	application.UserApp = &fakeApp{}
-//	getUsersApp = func() ([]entity.User, error) {
-//		//remember we are running sensitive info such as email and password
-//		return []entity.User{
-//			{
-//				ID:        1,
-//				FirstName: "victor",
-//				LastName:  "steven",
-//			},
-//			{
-//				ID:        2,
-//				FirstName: "mike",
-//				LastName:  "ken",
-//			},
-//		}, nil
-//	}
-//	r := gin.Default()
-//	r.GET("/users", GetUsers)
-//
-//	req, err := http.NewRequest(http.MethodGet, "/users", nil)
-//	if err != nil {
-//		t.Errorf("this is the error: %v\n", err)
-//	}
-//	rr := httptest.NewRecorder()
-//	r.ServeHTTP(rr, req)
-//
-//	var users []entity.User
-//
-//	err = json.Unmarshal(rr.Body.Bytes(), &users)
-//
-//	assert.Equal(t, rr.Code, 200)
-//	assert.EqualValues(t, len(users), 2)
-//}
-/////////////////////////////////////////////////////////////////
-//
-//
-//
-////GetUser Test
-//func TestGetUser_Success(t *testing.T) {
-//	application.UserApp = &fakeApp{}
-//	getUserApp = func(uint64) (*entity.User, error) {
-//		//remember we are running sensitive info such as email and password
-//		return &entity.User{
-//			ID:        1,
-//			FirstName: "victor",
-//			LastName:  "steven",
-//		}, nil
-//	}
-//	r := gin.Default()
-//	userId := strconv.Itoa(1)
-//	r.GET("/users/:user_id", GetUser)
-//
-//	req, err := http.NewRequest(http.MethodGet, "/users/" + userId, nil)
-//	if err != nil {
-//		t.Errorf("this is the error: %v\n", err)
-//	}
-//	rr := httptest.NewRecorder()
-//	r.ServeHTTP(rr, req)
-//
-//	var user *entity.User
-//
-//	err = json.Unmarshal(rr.Body.Bytes(), &user)
-//
-//	assert.Equal(t, rr.Code, 200)
-//	assert.EqualValues(t, user.FirstName, "victor")
-//	assert.EqualValues(t, user.LastName, "steven")
-//}
 

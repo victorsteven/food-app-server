@@ -29,6 +29,11 @@ func (f *Food) AfterFind()  {
 		f.FoodImage = os.Getenv("DO_SPACES_URL") + f.FoodImage
 	}
 }
+func (f *Food) AfterSave()  {
+	if f.FoodImage != "" {
+		f.FoodImage = os.Getenv("DO_SPACES_URL") + f.FoodImage
+	}
+}
 func (f *Food) AfterUpdate()  {
 	if f.FoodImage != "" {
 		f.FoodImage = os.Getenv("DO_SPACES_URL") + f.FoodImage

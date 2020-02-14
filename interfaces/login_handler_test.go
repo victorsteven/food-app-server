@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"food-app/application"
 	"food-app/domain/entity"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +14,7 @@ import (
 
 
 func TestSignin_Success(t *testing.T) {
-	application.UserApp = &fakeApp{}
+	//application.UserApp = &fakeApp{}
 	getUserEmailPasswordApp = func(*entity.User) (*entity.User, map[string]string) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
@@ -28,7 +27,7 @@ func TestSignin_Success(t *testing.T) {
 		FirstName: "victor",
 		LastName:  "steven",
 	}
-	details, err := Signin(user)
+	details, err := SignIn(user)
 	fmt.Println(err)
 	fmt.Println(details)
 }

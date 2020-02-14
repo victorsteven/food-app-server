@@ -113,6 +113,7 @@ func TokenValid(r *http.Request) error {
 
 func VerifyToken(r *http.Request) (*jwt.Token, error) {
 	tokenString := ExtractToken(r)
+	fmt.Println("token string: ", tokenString)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		//Make sure that the token method conform to "SigningMethodHMAC"
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -121,6 +122,7 @@ func VerifyToken(r *http.Request) (*jwt.Token, error) {
 		return []byte(os.Getenv("API_SECRET")), nil
 	})
 	if err != nil {
+		fmt.Println("err here: ", err)
 		return nil, err
 	}
 	return token, nil

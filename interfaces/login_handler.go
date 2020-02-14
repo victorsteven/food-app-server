@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func Signin(user *entity.User) (map[string]interface{}, map[string]string) {
+func SignIn(user *entity.User) (map[string]interface{}, map[string]string) {
 	var tokenErr = map[string]string{}
 	//check if the user details are correct:
 	u, err := application.UserApp.GetUserByEmailAndPassword(user)
@@ -46,7 +46,7 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateUser)
 		return
 	}
-	userData, err := Signin(user)
+	userData, err := SignIn(user)
 	if err != nil {
 		//fmt.Println("the ")
 		c.JSON(http.StatusInternalServerError, err)
@@ -67,7 +67,7 @@ func Logout(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateUser)
 		return
 	}
-	userData, err := Signin(user)
+	userData, err := SignIn(user)
 	if err != nil {
 		//fmt.Println("the ")
 		c.JSON(http.StatusInternalServerError, err)
