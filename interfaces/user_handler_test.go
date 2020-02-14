@@ -10,35 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
-var (
-	userAppSave func(*entity.User) (*entity.User, map[string]string)
-)
 
-type fakeApp struct {
-}
-
-func (fa fakeApp) GetUsers() ([]entity.User, error) {
-	panic("implement me")
-}
-
-func (fa fakeApp) GetUser(uint64) (*entity.User, error) {
-	panic("implement me")
-}
-
-func (fa fakeApp) GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string) {
-	panic("implement me")
-}
-
-func (fa fakeApp) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	return userAppSave(user)
-}
 
 func TestSaveUser_Success(t *testing.T) {
-	application.UserApp = &fakeApp{}
-	userAppSave = func(*entity.User) (*entity.User, map[string]string) {
+	application.UserApp = &fakeUserApp{}
+	saveUserApp = func(*entity.User) (*entity.User, map[string]string) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -101,8 +81,6 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 	samples := []struct {
 		inputJSON  string
 		statusCode int
-		username   string
-		email      string
 	}{
 		{
 			inputJSON:  `{"first_name": "", "last_name": "steven","email": "steven@example.com","password": "password"}`,
@@ -118,6 +96,11 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 		},
 		{
 			inputJSON:  `{"first_name": "victor", "last_name": "steven","email": "steven@example.com","password": ""}`,
+			statusCode: 422,
+		},
+		{
+			//invalid email
+			inputJSON:  `{"email": "stevenexample.com","password": ""}`,
 			statusCode: 422,
 		},
 	}
@@ -144,6 +127,9 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 		if validationErr["email_required"] != "" {
 			assert.Equal(t, validationErr["email_required"], "email is required")
 		}
+		if validationErr["invalid_email"] != "" {
+			assert.Equal(t, validationErr["invalid_email"], "please provide a valid email")
+		}
 		if validationErr["firstname_required"] != "" {
 			assert.Equal(t, validationErr["firstname_required"], "first name is required")
 		}
@@ -158,8 +144,8 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 
 //One of such db error is invalid email, it return that from the application and test.
 func TestSaveUser_DB_Error(t *testing.T) {
-	application.UserApp = &fakeApp{}
-	userAppSave = func(*entity.User) (*entity.User, map[string]string) {
+	application.UserApp = &fakeUserApp{}
+	saveUserApp = func(*entity.User) (*entity.User, map[string]string) {
 		return nil, map[string]string{
 			"email_taken": "email already taken",
 		}
@@ -187,3 +173,76 @@ func TestSaveUser_DB_Error(t *testing.T) {
 	assert.Equal(t, rr.Code, 500)
 	assert.EqualValues(t, dbErr["email_taken"], "email already taken")
 }
+////////////////////////////////////////////////////////////////
+
+
+//GetUsers Test
+func TestGetUsers_Success(t *testing.T) {
+	application.UserApp = &fakeUserApp{}
+	getUsersApp = func() ([]entity.User, error) {
+		//remember we are running sensitive info such as email and password
+		return []entity.User{
+			 {
+				ID:        1,
+				FirstName: "victor",
+				LastName:  "steven",
+			},
+			{
+				ID:        2,
+				FirstName: "mike",
+				LastName:  "ken",
+			},
+		}, nil
+	}
+	r := gin.Default()
+	r.GET("/users", GetUsers)
+
+	req, err := http.NewRequest(http.MethodGet, "/users", nil)
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	var users []entity.User
+
+	err = json.Unmarshal(rr.Body.Bytes(), &users)
+
+	assert.Equal(t, rr.Code, 200)
+	assert.EqualValues(t, len(users), 2)
+}
+///////////////////////////////////////////////////////////////
+
+
+
+//GetUser Test
+func TestGetUser_Success(t *testing.T) {
+	application.UserApp = &fakeUserApp{}
+	getUserApp = func(uint64) (*entity.User, error) {
+		//remember we are running sensitive info such as email and password
+		return &entity.User{
+			ID:        1,
+			FirstName: "victor",
+			LastName:  "steven",
+		}, nil
+	}
+	r := gin.Default()
+	userId := strconv.Itoa(1)
+	r.GET("/users/:user_id", GetUser)
+
+	req, err := http.NewRequest(http.MethodGet, "/users/" + userId, nil)
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	var user *entity.User
+
+	err = json.Unmarshal(rr.Body.Bytes(), &user)
+
+	assert.Equal(t, rr.Code, 200)
+	assert.EqualValues(t, user.FirstName, "victor")
+	assert.EqualValues(t, user.LastName, "steven")
+}
+

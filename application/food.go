@@ -9,9 +9,7 @@ import (
 type FoodImpl struct {
 }
 
-func FoodApp() FoodAppInterface {
-	return &FoodImpl{}
-}
+var FoodApp FoodAppInterface = &FoodImpl{}
 
 type FoodAppInterface interface {
 	SaveFood(*entity.Food) (*entity.Food, error)

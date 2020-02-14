@@ -83,10 +83,10 @@ func (u *User) Validate(action string) map[string]string {
 
 	case "login":
 		if u.Password == "" {
-			errorMessages["password_required"] = "password required"
+			errorMessages["password_required"] = "password is required"
 		}
 		if u.Email == "" {
-			errorMessages["email_required"] = "email required"
+			errorMessages["email_required"] = "email is required"
 		}
 		if u.Email != "" {
 			if err = checkmail.ValidateFormat(u.Email); err != nil {

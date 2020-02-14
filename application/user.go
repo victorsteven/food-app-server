@@ -19,11 +19,6 @@ type UserAppInterface interface {
 	GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string)
 }
 
-//GetUser returns a user
-//func (u *UserImpl) GetUser(id uint64) (*entity.User, error) {
-//	//return u.Repository.GetUser(id)
-//	return nil, nil
-//}
 
 func (u *UserImpl) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	db := rdbms.NewDB()

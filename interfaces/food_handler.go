@@ -58,7 +58,7 @@ func SaveFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.FoodImage = uploadedFile
-	fo, err := application.FoodApp().SaveFood(&food)
+	fo, err := application.FoodApp.SaveFood(&food)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -102,7 +102,7 @@ func UpdateFood(c *gin.Context) {
 		return
 	}
 	//check if the food exist:
-	food, err := application.FoodApp().GetFood(foodId)
+	food, err := application.FoodApp.GetFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusNotFound, "food not found")
 		return
@@ -130,7 +130,7 @@ func UpdateFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.UpdatedAt = time.Now()
-	fo, err := application.FoodApp().UpdateFood(food)
+	fo, err := application.FoodApp.UpdateFood(food)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"db_err": "too large: upload an image less than 8MB",
@@ -141,7 +141,7 @@ func UpdateFood(c *gin.Context) {
 }
 
 func GetAllFood(c *gin.Context) {
-	allfood, err := application.FoodApp().GetAllFood()
+	allfood, err := application.FoodApp.GetAllFood()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -155,7 +155,7 @@ func GetFoodAndCreator(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "invalid request")
 		return
 	}
-	food, err := application.FoodApp().GetFood(foodId)
+	food, err := application.FoodApp.GetFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -178,7 +178,7 @@ func DeleteFood(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "invalid request")
 		return
 	}
-	err = application.FoodApp().DeleteFood(foodId)
+	err = application.FoodApp.DeleteFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
