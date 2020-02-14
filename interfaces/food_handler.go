@@ -13,8 +13,6 @@ import (
 )
 
 func SaveFood(c *gin.Context) {
-
-	fmt.Println("the content type: ", c.Request.Header.Get("Content-Type"))
 	//check is the user is authenticated first
 	tokenAuth, err := token.ExtractTokenMetadata(c.Request)
 	if err != nil {
@@ -35,7 +33,6 @@ func SaveFood(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json")
 	}
 	//We initialize a new food for the purpose of validating: in case the payload is empty or an invalid data type is used
-	fmt.Println("the title: ", title)
 	emptyFood := entity.Food{}
 	emptyFood.Title = title
 	emptyFood.Description = description
@@ -52,7 +49,6 @@ func SaveFood(c *gin.Context) {
 	}
 	uploadedFile, err := fileupload.Uploader.UploadFile(file)
 	if err != nil {
-		fmt.Println("Error happened here: ", err)
 		saveFoodError["upload_err"] = err.Error() //this error can be any we defined in the UploadFile method
 		c.JSON(http.StatusUnprocessableEntity, saveFoodError)
 		return
@@ -62,9 +58,9 @@ func SaveFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.FoodImage = uploadedFile
-	fo, err := application.FoodApp.SaveFood(&food)
+	fo, saveErr := application.FoodApp.SaveFood(&food)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err.Error())
+		c.JSON(http.StatusInternalServerError, saveErr)
 		return
 	}
 	c.JSON(http.StatusCreated, fo)
@@ -134,11 +130,9 @@ func UpdateFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.UpdatedAt = time.Now()
-	fo, err := application.FoodApp.UpdateFood(food)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"db_err": "too large: upload an image less than 8MB",
-		})
+	fo, dbUpdateErr := application.FoodApp.UpdateFood(food)
+	if dbUpdateErr != nil {
+		c.JSON(http.StatusInternalServerError, dbUpdateErr)
 		return
 	}
 	c.JSON(http.StatusOK, fo)

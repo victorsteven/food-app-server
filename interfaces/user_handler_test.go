@@ -53,7 +53,7 @@ func TestSaveUser_Success(t *testing.T) {
 }
 
 //When instead a string an integer is supplied, When attempting to unmarshal input to the user struct, it will fail
-func Test_SaveUser_Invalid_Input(t *testing.T) {
+func Test_SaveUser_Wrong_Input(t *testing.T) {
 	//consider instead of passing a string for  first_name, we passed an integer
 	inputJSON :=  `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`
 

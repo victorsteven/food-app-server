@@ -4,22 +4,32 @@ import (
 	"errors"
 	"fmt"
 	"food-app/domain/entity"
+	"food-app/domain/repository"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
+	"strings"
 )
 
 type repositoryFoodCRUD struct {
 	db *gorm.DB
 }
 
-func NewRepositoryFoodCRUD(db *gorm.DB) *repositoryFoodCRUD {
+func NewRepositoryFoodCRUD(db *gorm.DB) repository.FoodRepository {
 	return &repositoryFoodCRUD{db}
 }
 
-func (r *repositoryFoodCRUD) SaveFood(food *entity.Food) (*entity.Food, error) {
+func (r *repositoryFoodCRUD) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
+	dbErr := map[string]string{}
 	err := r.db.Debug().Create(&food).Error
 	if err != nil {
-		return nil, err
+		//since our title is unique
+		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
+			dbErr["email_taken"] = "email already taken"
+			return nil, dbErr
+		}
+		//any other db error
+		dbErr["db_error"] = "database error"
+		return nil, dbErr
 	}
 	return food, nil
 }
@@ -49,10 +59,18 @@ func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
 	return foods, nil
 }
 
-func (r *repositoryFoodCRUD) UpdateFood(food *entity.Food) (*entity.Food, error) {
+func (r *repositoryFoodCRUD) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
+	dbErr := map[string]string{}
 	err := r.db.Debug().Save(&food).Error
 	if err != nil {
-		return nil, err
+		//since our title is unique
+		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
+			dbErr["email_taken"] = "email already taken"
+			return nil, dbErr
+		}
+		//any other db error
+		dbErr["db_error"] = "database error"
+		return nil, dbErr
 	}
 	return food, nil
 }
