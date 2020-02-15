@@ -348,3 +348,93 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 	assert.EqualValues(t, food.Description, "Food description updated")
 	assert.EqualValues(t, food.FoodImage, "dbdbf-dhbfh-bfy34-34jh-fd-updated.jpg")
 }
+
+//This is where file is not updated. A user can choose not to update file, in that case, the old file will still be used
+func TestUpdateFood_Success_Without_File(t *testing.T) {
+	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	token.TokenAuth = &fakeAuth{}
+	fileupload.Uploader = &fakeUploader{}
+
+	//Return Food to check for, with our mock
+	getFoodApp = func(uint64) (*entity.Food, error) {
+		return &entity.Food{
+			ID:        1,
+			UserID:    1,
+			Title: "Food title",
+			Description:  "Food description",
+			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
+		}, nil
+	}
+	//Mocking The Food return from db
+	updateFoodApp = func(*entity.Food) (*entity.Food, map[string]string) {
+		return &entity.Food{
+			ID:        1,
+			UserID:    1,
+			Title: "Food title updated",
+			Description:  "Food description updated",
+			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
+		}, nil
+	}
+	//Mocking the fetching of token metadata from redis
+	fetchAuth = func(ad *token.AccessDetails) (uint64, error){
+		return 1, nil
+	}
+	//Mocking file upload to DigitalOcean
+	uploadFile = func(file *multipart.FileHeader) (string, error) {
+		return "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg", nil //this is fabricated
+	}
+	//Create a buffer to store our request body as bytes
+	var requestBody bytes.Buffer
+
+	//Create a multipart writer
+	multipartWriter := multipart.NewWriter(&requestBody)
+
+	//Add the title and the description fields
+	fileWriter, err := multipartWriter.CreateFormField("title")
+	if err != nil {
+		t.Errorf("Cannot write title: %s\n", err)
+	}
+	_, err = fileWriter.Write([]byte("Food title updated"))
+	if err != nil {
+		t.Errorf("Cannot write title value: %s\n", err)
+	}
+	fileWriter, err = multipartWriter.CreateFormField("description")
+	if err != nil {
+		t.Errorf("Cannot write description: %s\n", err)
+	}
+	_, err = fileWriter.Write([]byte("Food description updated"))
+	if err != nil {
+		t.Errorf("Cannot write description value: %s\n", err)
+	}
+	//Close the multipart writer so it writes the ending boundary
+	multipartWriter.Close()
+
+	//use a valid token that has not expired. This token was created to live forever, just for test purposes with the user id of 1. This is so that it can always be used to run tests
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
+
+	tokenString := fmt.Sprintf("Bearer %v", token)
+
+	foodID := strconv.Itoa(1)
+	req, err := http.NewRequest(http.MethodPut, "/food/"+foodID, &requestBody)
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	r := gin.Default()
+	r.PUT("/food/:food_id", UpdateFood)
+	req.Header.Set("Authorization", tokenString)
+	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	var food = entity.Food{}
+	err = json.Unmarshal(rr.Body.Bytes(), &food)
+	if err != nil {
+		t.Errorf("cannot unmarshal response: %v\n", err)
+	}
+	assert.Equal(t, rr.Code, 200)
+	assert.EqualValues(t, food.ID, 1)
+	assert.EqualValues(t, food.UserID, 1)
+	assert.EqualValues(t, food.Title, "Food title updated")
+	assert.EqualValues(t, food.Description, "Food description updated")
+	assert.EqualValues(t, food.FoodImage, "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg")
+}
