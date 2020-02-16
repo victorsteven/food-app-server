@@ -9,6 +9,10 @@ import (
 func Route() *gin.Engine {
 
 	router.POST("/login", interfaces.Login)
+	router.POST("/logout", interfaces.Logout)
+	router.POST("/refresh", interfaces.Refresh)
+
+
 
 	router.POST("/users", interfaces.SaveUser)
 	router.GET("/users", interfaces.GetUsers)

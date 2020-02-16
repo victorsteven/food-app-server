@@ -5,7 +5,7 @@ import (
 	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/fileupload"
-	"food-app/utils/token"
+	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -14,13 +14,13 @@ import (
 
 func SaveFood(c *gin.Context) {
 	//check is the user is authenticated first
-	metadata, err := token.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
 	}
 	//lookup the metadata in redis:
-	userId, err := token.Auth.FetchAuth(metadata.TokenUuid)
+	userId, err := auth.Auth.FetchAuth(metadata.TokenUuid)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
@@ -78,13 +78,13 @@ func SaveFood(c *gin.Context) {
 
 func UpdateFood(c *gin.Context) {
 	//Check if the user is authenticated first
-	metadata, err := token.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 	//lookup the metadata in redis:
-	userId, err := token.Auth.FetchAuth(metadata.TokenUuid)
+	userId, err := auth.Auth.FetchAuth(metadata.TokenUuid)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
@@ -188,7 +188,7 @@ func GetFoodAndCreator(c *gin.Context) {
 
 func DeleteFood(c *gin.Context) {
 
-	metadata, err := token.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return

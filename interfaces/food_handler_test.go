@@ -7,7 +7,7 @@ import (
 	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/fileupload"
-	"food-app/utils/token"
+	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v7"
 	"github.com/joho/godotenv"
@@ -30,27 +30,39 @@ func TestMain(m *testing.M) {
 }
 
 var (
-	tokenMetadata func(*http.Request) (*token.AccessDetails, error)
+	tokenMetadata func(*http.Request) (*auth.AccessDetails, error)
 	fetchAuth func(uuid string) (uint64, error)
 	uploadFile func(file *multipart.FileHeader) (string, error)
 )
 type fakeAuth struct {}
+
+func (f *fakeAuth) DeleteRefresh(string) (int64, error) {
+	panic("implement me")
+}
+
+func (f *fakeAuth) DeleteTokens(*auth.AccessDetails) (int64, error) {
+	panic("implement me")
+}
+
 type fakeToken struct {}
+
+func (f *fakeToken) CreateToken(userid uint64) (*auth.TokenDetails, error) {
+	panic("implement me")
+}
+
 type fakeUploader struct {}
 
 func (f *fakeAuth) FetchAuth(uuid string) (uint64, error) {
 	return fetchAuth(uuid)
 }
-func (f *fakeToken) ExtractTokenMetadata(r *http.Request) (*token.AccessDetails, error) {
+func (f *fakeToken) ExtractTokenMetadata(r *http.Request) (*auth.AccessDetails, error) {
 	return tokenMetadata(r)
 }
-func (f *fakeAuth) DeleteTokens(string) (int64, error) {
-	panic("implement me")
-}
+
 func (f *fakeUploader) UploadFile(newname *multipart.FileHeader) (string, error) {
 	return uploadFile(newname)
 }
-func (f *fakeAuth) CreateAuth(uint64, *token.TokenDetails) error {
+func (f *fakeAuth) CreateAuth(uint64, *auth.TokenDetails) error {
 	panic("implement me")
 }
 func (f *fakeAuth) NewRedisClient(host, port, password string) (*redis.Client, error) {
@@ -89,12 +101,12 @@ func (f *fakeAuth) NewRedisClient(host, port, password string) (*redis.Client, e
 
 func Test_SaveFood_Invalid_Data(t *testing.T) {
 
-	token.Token = &fakeToken{}
-	token.Auth = &fakeAuth{}
+	auth.Token = &fakeToken{}
+	auth.Auth = &fakeAuth{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*token.AccessDetails, error){
-		return &token.AccessDetails{
+	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
@@ -179,14 +191,14 @@ func Test_SaveFood_Invalid_Data(t *testing.T) {
 
 func TestSaverFood_Success(t *testing.T) {
 	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	token.Token = &fakeToken{}
-	token.Auth = &fakeAuth{}
+	auth.Token = &fakeToken{}
+	auth.Auth = &fakeAuth{}
 	application.UserApp = &fakeUserApp{}
 	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*token.AccessDetails, error){
-		return &token.AccessDetails{
+	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
@@ -293,14 +305,14 @@ func TestSaverFood_Success(t *testing.T) {
 
 func TestUpdateFood_Success_With_File(t *testing.T) {
 	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	token.Token = &fakeToken{}
-	token.Auth = &fakeAuth{}
+	auth.Token = &fakeToken{}
+	auth.Auth = &fakeAuth{}
 	application.UserApp = &fakeUserApp{}
 	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*token.AccessDetails, error){
-		return &token.AccessDetails{
+	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
@@ -420,14 +432,14 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 //This is where file is not updated. A user can choose not to update file, in that case, the old file will still be used
 func TestUpdateFood_Success_Without_File(t *testing.T) {
 	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	token.Token = &fakeToken{}
-	token.Auth = &fakeAuth{}
+	auth.Token = &fakeToken{}
+	auth.Auth = &fakeAuth{}
 	application.UserApp = &fakeUserApp{}
 	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*token.AccessDetails, error){
-		return &token.AccessDetails{
+	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
@@ -528,13 +540,13 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 
 
 func Test_UdpateFood_Invalid_Data(t *testing.T) {
-	token.Token = &fakeToken{}
-	token.Auth = &fakeAuth{}
+	auth.Token = &fakeToken{}
+	auth.Auth = &fakeAuth{}
 	//Mocking the fetching of token metadata from redis
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*token.AccessDetails, error){
-		return &token.AccessDetails{
+	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil

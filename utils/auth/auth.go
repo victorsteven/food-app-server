@@ -1,4 +1,4 @@
-package token
+package auth
 
 import (
 	"errors"
@@ -14,7 +14,8 @@ type tokenData struct {
 type authInterface interface {
 	CreateAuth(uint64, *TokenDetails) error
 	FetchAuth(string) (uint64, error)
-	DeleteTokens(string) (int64, error)
+	DeleteRefresh(string) (int64, error)
+	DeleteTokens(*AccessDetails) (int64, error)
 	NewRedisClient(host, port, password string) (*redis.Client, error)
 }
 
@@ -65,7 +66,6 @@ func (tk *tokenData) CreateAuth(userid uint64, td *TokenDetails) error {
 
 //Check the metadata saved
 func (tk *tokenData) FetchAuth(tokenUuid string) (uint64, error) {
-	fmt.Println("WE ENTERED HERE")
 	userid, err := tk.conn.Get(tokenUuid).Result()
 	if err != nil {
 		return 0, err
@@ -75,10 +75,29 @@ func (tk *tokenData) FetchAuth(tokenUuid string) (uint64, error) {
 }
 
 //Once a user row in the token table
-func (tk *tokenData) DeleteTokens(tokenUuid string) (int64, error) {
-	deleted, err := tk.conn.Del(tokenUuid).Result()
+func (tk *tokenData) DeleteTokens(tokenUuid *AccessDetails) (int64, error) {
+	//get the refresh token
+	refreshToken := fmt.Sprintf("%s++%d", tokenUuid.TokenUuid, tokenUuid.UserId)
+	//delete access token
+	deleted, err := tk.conn.Del(tokenUuid.TokenUuid).Result()
+	if err != nil {
+		return 0, err
+	}
+	//if deleted !=
+	//delete refresh token
+	deleted, err = tk.conn.Del(refreshToken).Result()
 	if err != nil {
 		return 0, err
 	}
 	return deleted, nil
 }
+
+func (tk *tokenData) DeleteRefresh(refreshUuid string) (int64, error) {
+	//delete refresh token
+	deleted, err := tk.conn.Del(refreshUuid).Result()
+	if err != nil {
+		return 0, err
+	}
+	return deleted, nil
+}
+

@@ -4,7 +4,7 @@ import (
 	"food-app/cmd/middleware"
 	"food-app/database/rdbms"
 	"food-app/domain/entity"
-	"food-app/utils/token"
+	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
@@ -46,7 +46,7 @@ func StartApp() {
 	redis_port := os.Getenv("REDIS_PORT")
 	redis_password := os.Getenv("REDIS_PASSWORD")
 
-	_, err = token.TokenAuth.NewRedisClient(redis_host, redis_port, redis_password)
+	_, err = auth.Auth.NewRedisClient(redis_host, redis_port, redis_password)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,4 +1,4 @@
-package token
+package auth
 
 import (
 	"fmt"
@@ -12,6 +12,7 @@ import (
 )
 
 type tokenInterface interface {
+	CreateToken(userid uint64) (*TokenDetails, error)
 	ExtractTokenMetadata(*http.Request) (*AccessDetails, error)
 }
 
@@ -19,7 +20,7 @@ type token struct {}
 
 var Token tokenInterface = &token{}
 
-func CreateToken(userid uint64) (*TokenDetails, error) {
+func (t *token) CreateToken(userid uint64) (*TokenDetails, error) {
 	td := &TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 60).Unix()
 	td.TokenUuid = uuid.NewV4().String()
@@ -35,7 +36,7 @@ func CreateToken(userid uint64) (*TokenDetails, error) {
 	atClaims["user_id"] = userid
 	atClaims["exp"] = td.AtExpires
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, atClaims)
-	td.AccessToken, err = at.SignedString([]byte(os.Getenv("API_SECRET")))
+	td.AccessToken, err = at.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +46,7 @@ func CreateToken(userid uint64) (*TokenDetails, error) {
 	rtClaims["user_id"] = userid
 	rtClaims["exp"] = td.RtExpires
 	rt := jwt.NewWithClaims(jwt.SigningMethodHS256, rtClaims)
-	td.RefreshToken, err = rt.SignedString([]byte(os.Getenv("API_SECRET_REFRESH")))
+	td.RefreshToken, err = rt.SignedString([]byte(os.Getenv("REFRESH_SECRET")))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func VerifyToken(r *http.Request) (*jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return []byte(os.Getenv("API_SECRET")), nil
+		return []byte(os.Getenv("ACCESS_SECRET")), nil
 	})
 	if err != nil {
 		return nil, err
@@ -104,11 +105,6 @@ func (t *token) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 		if err != nil {
 			return nil, err
 		}
-		//check if the token is still useful:
-		//gottenId, err := AuthModel.FetchAuth(accessUuid)
-		//if err != nil || gottenId != userId {
-		//	return 0, errors.New("unauthorized")
-		//}
 		return &AccessDetails{
 			TokenUuid: accessUuid,
 			UserId:     userId,

@@ -3,7 +3,7 @@ package middleware
 
 import (
 	"bytes"
-	"food-app/utils/token"
+	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
@@ -11,7 +11,7 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := token.TokenValid(c.Request)
+		err := auth.TokenValid(c.Request)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"status": http.StatusUnauthorized,
