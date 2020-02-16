@@ -1,6 +1,7 @@
 package interfaces
 
 import (
+	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/token"
@@ -21,7 +22,7 @@ func SignIn(user *entity.User) (map[string]interface{}, map[string]string){
 		tokenErr["token_error"] = tErr.Error()
 		return nil, err
 	}
-	saveErr := token.TokenAuth.CreateAuth(u.ID, ts)
+	saveErr := token.Auth.CreateAuth(u.ID, ts)
 	if saveErr != nil {
 		return nil, err
 	}
@@ -57,22 +58,40 @@ func Login(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	var user *entity.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
-		return
-	}
-	//validate request:
-	validateUser := user.Validate("login")
-	if len(validateUser) > 0 {
-		c.JSON(http.StatusUnprocessableEntity, validateUser)
-		return
-	}
-	userData, err := SignIn(user)
+
+	//check is the user is authenticated first
+	userId, err := token.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
-		//fmt.Println("the ")
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusUnauthorized, "Unauthorized here")
 		return
 	}
-	c.JSON(http.StatusOK, userData)
+	//userId, err := token.TokenAuth.FetchAuth(metadata.TokenUuid)
+	//if err != nil {
+	//	c.JSON(http.StatusUnauthorized, "unauthorized")
+	//	return
+	//}
+	fmt.Print(userId)
+
+
+
+
+
+	//var user *entity.User
+	//if err := c.ShouldBindJSON(&user); err != nil {
+	//	c.JSON(http.StatusUnprocessableEntity, "Invalid json")
+	//	return
+	//}
+	//validate request:
+	//validateUser := user.Validate("login")
+	//if len(validateUser) > 0 {
+	//	c.JSON(http.StatusUnprocessableEntity, validateUser)
+	//	return
+	//}
+	//userData, err := SignIn(user)
+	//if err != nil {
+	//	//fmt.Println("the ")
+	//	c.JSON(http.StatusInternalServerError, err)
+	//	return
+	//}
+	c.JSON(http.StatusOK, "userData")
 }

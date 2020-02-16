@@ -14,14 +14,21 @@ import (
 
 func SaveFood(c *gin.Context) {
 	//check is the user is authenticated first
-	tokenAuth, err := token.ExtractTokenMetadata(c.Request)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, "Unauthorized here")
-		return
-	}
-	userId, err := token.TokenAuth.FetchAuth(tokenAuth)
+	metadata, err := token.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	//lookup the metadata in redis:
+	userId, err := token.Auth.FetchAuth(metadata.TokenUuid)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	//check if the user exist
+	_, err = application.UserApp.GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
 		return
 	}
 	//We we are using a frontend(vuejs), our errors need to have keys for easy checking, so we use a map to hold our errors
@@ -30,7 +37,10 @@ func SaveFood(c *gin.Context) {
 	title := c.PostForm("title")
 	description := c.PostForm("description")
 	if fmt.Sprintf("%T", title) != "string" || fmt.Sprintf("%T", description) != "string" {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json")
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"invalid_json": "Invalid json",
+		})
+		return
 	}
 	//We initialize a new food for the purpose of validating: in case the payload is empty or an invalid data type is used
 	emptyFood := entity.Food{}
@@ -59,7 +69,7 @@ func SaveFood(c *gin.Context) {
 	food.Description = description
 	food.FoodImage = uploadedFile
 	fo, saveErr := application.FoodApp.SaveFood(&food)
-	if err != nil {
+	if saveErr != nil {
 		c.JSON(http.StatusInternalServerError, saveErr)
 		return
 	}
@@ -68,14 +78,20 @@ func SaveFood(c *gin.Context) {
 
 func UpdateFood(c *gin.Context) {
 	//Check if the user is authenticated first
-	tokenAuth, err := token.ExtractTokenMetadata(c.Request)
+	metadata, err := token.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
 	}
-	userId, err := token.TokenAuth.FetchAuth(tokenAuth)
+	//lookup the metadata in redis:
+	userId, err := token.Auth.FetchAuth(metadata.TokenUuid)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	user, err := application.UserApp.GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
 		return
 	}
 	//We we are using a frontend(vuejs), our errors need to have keys for easy checking, so we use a map to hold our errors
@@ -108,7 +124,7 @@ func UpdateFood(c *gin.Context) {
 		return
 	}
 	//if the user id doesnt match with the one we have, dont update. This is the case where an authenticated user tries to update someone else post using postman, curl, etc
-	if userId != food.UserID {
+	if user.ID != food.UserID {
 		c.JSON(http.StatusUnauthorized, "you are not the owner of this food")
 		return
 	}
@@ -171,6 +187,17 @@ func GetFoodAndCreator(c *gin.Context) {
 }
 
 func DeleteFood(c *gin.Context) {
+
+	metadata, err := token.Token.ExtractTokenMetadata(c.Request)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+	_, err = application.UserApp.GetUser(metadata.UserId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
+		return
+	}
 	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "invalid request")

@@ -52,17 +52,17 @@ func (f *Food) Validate(action string) map[string]string {
 	switch strings.ToLower(action) {
 	case "update":
 		if f.Title == "" {
-			errorMessages["title_required"] = "title required"
+			errorMessages["title_required"] = "title is required"
 		}
 		if f.Description == "" {
-			errorMessages["desc_required"] = "description required"
+			errorMessages["desc_required"] = "description is required"
 		}
 	default:
 		if f.Title == "" {
-			errorMessages["title_required"] = "title required"
+			errorMessages["title_required"] = "title is required"
 		}
 		if f.Description == "" {
-			errorMessages["desc_required"] = "description required"
+			errorMessages["desc_required"] = "description is required"
 		}
 	}
 	return errorMessages
