@@ -3,7 +3,6 @@ package interfaces
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/auth"
@@ -146,8 +145,7 @@ func Test_Login_Success(t *testing.T) {
 	if err != nil {
 		t.Errorf("error unmarshalling error %s\n", err)
 	}
-	//assert.Equal(t, rr.Code, v.statusCode)
-	fmt.Println(response)
+	assert.Equal(t, rr.Code, http.StatusOK)
 	assert.EqualValues(t, response["access_token"], "this-is-the-access-token")
 	assert.EqualValues(t, response["refresh_token"], "this-is-the-refresh-token")
 	assert.EqualValues(t, response["first_name"], "victor")
