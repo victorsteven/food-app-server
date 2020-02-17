@@ -52,30 +52,6 @@ func TestSaveUser_Success(t *testing.T) {
 	assert.EqualValues(t, user.LastName, "steven")
 }
 
-//When instead a string an integer is supplied, When attempting to unmarshal input to the user struct, it will fail
-func Test_SaveUser_Wrong_Input(t *testing.T) {
-	//consider instead of passing a string for  first_name, we passed an integer
-	inputJSON :=  `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`
-
-	r := gin.Default()
-	r.POST("/users", SaveUser)
-	req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(inputJSON))
-	if err != nil {
-		t.Errorf("this is the error: %v\n", err)
-	}
-	rr := httptest.NewRecorder()
-	r.ServeHTTP(rr, req)
-
-	invalidInput :=  ""
-
-	err = json.Unmarshal(rr.Body.Bytes(), &invalidInput)
-	if err != nil {
-		t.Errorf("error unmarshalling error %s\n", err)
-	}
-	assert.Equal(t, rr.Code, 422)
-	assert.Equal(t, invalidInput, "invalid json")
-}
-
 //We dont need to mock the application layer, because we won't get there. So we will use table test to cover all validation errors
 func Test_SaveUser_Invalidating_Data(t *testing.T) {
 	samples := []struct {
@@ -103,6 +79,11 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 			inputJSON:  `{"email": "stevenexample.com","password": ""}`,
 			statusCode: 422,
 		},
+		{
+			//When instead a string an integer is supplied, When attempting to unmarshal input to the user struct, it will fail
+			inputJSON: `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`,
+			statusCode: 422,
+		},
 	}
 
 	for _, v := range samples {
@@ -122,6 +103,7 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 		if err != nil {
 			t.Errorf("error unmarshalling error %s\n", err)
 		}
+		fmt.Println("validator error: ", validationErr)
 		assert.Equal(t, rr.Code, v.statusCode)
 
 		if validationErr["email_required"] != "" {
@@ -138,6 +120,9 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 		}
 		if validationErr["password_required"] != "" {
 			assert.Equal(t, validationErr["password_required"], "password is required")
+		}
+		if validationErr["invalid_json"] != "" {
+			assert.Equal(t, validationErr["invalid_json"], "invalid json")
 		}
 	}
 }

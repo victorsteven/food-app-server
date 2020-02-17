@@ -28,6 +28,7 @@ func SignIn(user *entity.User) (map[string]interface{}, map[string]string){
 	if saveErr != nil {
 		return nil, err
 	}
+
 	userData := make(map[string]interface{})
 	userData["access_token"] = ts.AccessToken
 	userData["refresh_token"] = ts.RefreshToken

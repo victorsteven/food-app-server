@@ -3,8 +3,9 @@ package interfaces
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"food-app/application"
 	"food-app/domain/entity"
+	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -14,22 +15,42 @@ import (
 
 
 func TestSignin_Success(t *testing.T) {
-	//application.UserApp = &fakeApp{}
+	//Mock all the functions that the function depend on.
+	auth.Token = &fakeToken{}
+	auth.Auth = &fakeAuth{}
+	application.UserApp = &fakeUserApp{}
+
 	getUserEmailPasswordApp = func(*entity.User) (*entity.User, map[string]string) {
-		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
 			FirstName: "victor",
 			LastName:  "steven",
 		}, nil
 	}
+	createToken  = func(userid uint64) (*auth.TokenDetails, error){
+		return &auth.TokenDetails{
+			AccessToken:  "this-is-the-access-token",
+			RefreshToken: "this-is-the-refresh-token",
+			TokenUuid:    "dfsdf-342-34-23-4234-234",
+			RefreshUuid:  "sfd-3234-sdfew-34234-df3",
+			AtExpires:    12345,
+			RtExpires:    1234555,
+		}, nil
+	}
+	createAuth = func(uint64, *auth.TokenDetails) error {
+		return nil
+	}
+
 	user := &entity.User{
 		FirstName: "victor",
 		LastName:  "steven",
 	}
 	details, err := SignIn(user)
-	fmt.Println(err)
-	fmt.Println(details)
+	assert.Nil(t, err)
+	assert.EqualValues(t, details["access_token"], "this-is-the-access-token")
+	assert.EqualValues(t, details["refresh_token"], "this-is-the-refresh-token")
+	assert.EqualValues(t, details["first_name"], "victor")
+	assert.EqualValues(t, details["last_name"], "steven")
 }
 
 

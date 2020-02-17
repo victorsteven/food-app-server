@@ -32,38 +32,34 @@ func TestMain(m *testing.M) {
 var (
 	tokenMetadata func(*http.Request) (*auth.AccessDetails, error)
 	fetchAuth func(uuid string) (uint64, error)
+	createAuth func(uint64, *auth.TokenDetails) error
 	uploadFile func(file *multipart.FileHeader) (string, error)
+	createToken func(userid uint64) (*auth.TokenDetails, error)
 )
 type fakeAuth struct {}
+type fakeToken struct {}
+type fakeUploader struct {}
 
 func (f *fakeAuth) DeleteRefresh(string) (int64, error) {
 	panic("implement me")
 }
-
 func (f *fakeAuth) DeleteTokens(*auth.AccessDetails) error {
 	panic("implement me")
 }
-
-type fakeToken struct {}
-
 func (f *fakeToken) CreateToken(userid uint64) (*auth.TokenDetails, error) {
-	panic("implement me")
+	return createToken(userid)
 }
-
-type fakeUploader struct {}
-
 func (f *fakeAuth) FetchAuth(uuid string) (uint64, error) {
 	return fetchAuth(uuid)
 }
 func (f *fakeToken) ExtractTokenMetadata(r *http.Request) (*auth.AccessDetails, error) {
 	return tokenMetadata(r)
 }
-
 func (f *fakeUploader) UploadFile(newname *multipart.FileHeader) (string, error) {
 	return uploadFile(newname)
 }
-func (f *fakeAuth) CreateAuth(uint64, *auth.TokenDetails) error {
-	panic("implement me")
+func (f *fakeAuth) CreateAuth(userId uint64, authD *auth.TokenDetails) error {
+	return createAuth(userId, authD)
 }
 func (f *fakeAuth) NewRedisClient(host, port, password string) (*redis.Client, error) {
 	panic("implement me")
