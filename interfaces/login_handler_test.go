@@ -3,6 +3,7 @@ package interfaces
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/auth"
@@ -13,6 +14,14 @@ import (
 	"testing"
 )
 
+var (
+	signin func(*entity.User) (map[string]interface{}, map[string]string)
+)
+type fakeSignin struct {}
+
+func (s *fakeSignin) SignIn(user *entity.User) (map[string]interface{}, map[string]string) {
+	return signin(user)
+}
 
 func TestSignin_Success(t *testing.T) {
 	//Mock all the functions that the function depend on.
@@ -45,7 +54,7 @@ func TestSignin_Success(t *testing.T) {
 		FirstName: "victor",
 		LastName:  "steven",
 	}
-	details, err := SignIn(user)
+	details, err := Sign.SignIn(user)
 	assert.Nil(t, err)
 	assert.EqualValues(t, details["access_token"], "this-is-the-access-token")
 	assert.EqualValues(t, details["refresh_token"], "this-is-the-refresh-token")
@@ -55,7 +64,7 @@ func TestSignin_Success(t *testing.T) {
 
 
 //We dont need to mock the application layer, because we won't get there. So we will use table test to cover all validation errors
-func Test_Login(t *testing.T) {
+func Test_Login_Invalid_Data(t *testing.T) {
 	samples := []struct {
 		inputJSON  string
 		statusCode int
@@ -106,4 +115,42 @@ func Test_Login(t *testing.T) {
 			assert.Equal(t, validationErr["password_required"], "password is required")
 		}
 	}
+}
+
+
+func Test_Login_Success(t *testing.T) {
+	//Mock the signin method and return the response:
+	Sign = &fakeSignin{} //this where the swap happens
+	signin = func(user *entity.User) (map[string]interface{}, map[string]string){
+		return map[string]interface{}{
+			"access_token": "this-is-the-access-token",
+			"refresh_token": "this-is-the-refresh-token",
+			"first_name": "victor",
+			"last_name": "steven",
+			"user_id": 1,
+		}, nil
+	}
+	inputJSON :=  `{"email": "steven@example.com","password": "password"}`
+	r := gin.Default()
+	r.POST("/login", Login)
+	req, err := http.NewRequest(http.MethodPost, "/login", bytes.NewBufferString(inputJSON))
+	if err != nil {
+		t.Errorf("this is the error: %v\n", err)
+	}
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	response := make(map[string]interface{})
+
+	err = json.Unmarshal(rr.Body.Bytes(), &response)
+	if err != nil {
+		t.Errorf("error unmarshalling error %s\n", err)
+	}
+	//assert.Equal(t, rr.Code, v.statusCode)
+	fmt.Println(response)
+	assert.EqualValues(t, response["access_token"], "this-is-the-access-token")
+	assert.EqualValues(t, response["refresh_token"], "this-is-the-refresh-token")
+	assert.EqualValues(t, response["first_name"], "victor")
+	assert.EqualValues(t, response["last_name"], "steven")
+	assert.EqualValues(t, response["user_id"], 1)
 }

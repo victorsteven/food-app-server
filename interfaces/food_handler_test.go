@@ -535,7 +535,7 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 }
 
 
-func Test_UdpateFood_Invalid_Data(t *testing.T) {
+func Test_UpdateFood_Invalid_Data(t *testing.T) {
 	auth.Token = &fakeToken{}
 	auth.Auth = &fakeAuth{}
 
@@ -588,9 +588,11 @@ func Test_UdpateFood_Invalid_Data(t *testing.T) {
 		token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
 		tokenString := fmt.Sprintf("Bearer %v", token)
 
+		foodID := strconv.Itoa(1)
+
 		r := gin.Default()
-		r.POST("/food", SaveFood)
-		req, err := http.NewRequest(http.MethodPost, "/food", bytes.NewBufferString(v.inputJSON))
+		r.POST("/food/:food_id", UpdateFood)
+		req, err := http.NewRequest(http.MethodPost, "/food/"+foodID, bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
 		}

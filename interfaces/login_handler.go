@@ -12,7 +12,15 @@ import (
 	"strconv"
 )
 
-func SignIn(user *entity.User) (map[string]interface{}, map[string]string){
+
+type signinInterface interface {
+	SignIn(*entity.User) (map[string]interface{}, map[string]string)
+}
+type sign struct {}
+
+var Sign signinInterface = &sign{} //The struct now implement the interface
+
+func (s *sign) SignIn(user *entity.User) (map[string]interface{}, map[string]string){
 	var tokenErr = map[string]string{}
 	//check if the user details are correct:
 	u, err := application.UserApp.GetUserByEmailAndPassword(user)
@@ -51,9 +59,8 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateUser)
 		return
 	}
-	userData, err := SignIn(user)
+	userData, err := Sign.SignIn(user)
 	if err != nil {
-		//fmt.Println("the ")
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
