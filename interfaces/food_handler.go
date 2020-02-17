@@ -25,12 +25,6 @@ func SaveFood(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	//check if the user exist
-	_, err = application.UserApp.GetUser(userId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
-		return
-	}
 	//We we are using a frontend(vuejs), our errors need to have keys for easy checking, so we use a map to hold our errors
 	var saveFoodError = make(map[string]string)
 
@@ -55,6 +49,12 @@ func SaveFood(c *gin.Context) {
 	if err != nil {
 		saveFoodError["invalid_file"] = "a valid file is required"
 		c.JSON(http.StatusUnprocessableEntity, saveFoodError)
+		return
+	}
+	//check if the user exist
+	_, err = application.UserApp.GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
 		return
 	}
 	uploadedFile, err := fileupload.Uploader.UploadFile(file)
@@ -89,11 +89,6 @@ func UpdateFood(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	user, err := application.UserApp.GetUser(userId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
-		return
-	}
 	//We we are using a frontend(vuejs), our errors need to have keys for easy checking, so we use a map to hold our errors
 	var updateFoodError = make(map[string]string)
 
@@ -117,6 +112,12 @@ func UpdateFood(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, updateFoodError)
 		return
 	}
+	user, err := application.UserApp.GetUser(userId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
+		return
+	}
+
 	//check if the food exist:
 	food, err := application.FoodApp.GetFood(foodId)
 	if err != nil {

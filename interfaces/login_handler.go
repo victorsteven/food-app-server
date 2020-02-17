@@ -67,9 +67,9 @@ func Logout(c *gin.Context) {
 		return
 	}
 	//if the access token exist and it is still valid, then delete both the access token and the refresh token
-	deleted, deleteErr := auth.Auth.DeleteTokens(metadata)
-	if deleteErr != nil || deleted == 0 {
-		c.JSON(http.StatusUnauthorized, "Unauthorized")
+	deleteErr := auth.Auth.DeleteTokens(metadata)
+	if deleteErr != nil {
+		c.JSON(http.StatusUnauthorized, deleteErr.Error())
 		return
 	}
 	c.JSON(http.StatusOK, "Successfully logged out")
@@ -91,10 +91,9 @@ func Refresh(c *gin.Context) {
 		}
 		return []byte(os.Getenv("REFRESH_SECRET")), nil
 	})
-	//if there is an error, the token must have expired
+	//any error may be due to token expiration
 	if err != nil {
-		//fmt.Println("refresh")
-		c.JSON(http.StatusUnauthorized, "Invalid refresh token, unauthorized")
+		c.JSON(http.StatusUnauthorized, err.Error())
 		return
 	}
 	//is token valid?
@@ -103,11 +102,11 @@ func Refresh(c *gin.Context) {
 		return
 	}
 	//Since token is valid, get the uuid:
-	claims, ok := token.Claims.(jwt.MapClaims) //the token claims should conform to MapClaims
+	claims, ok := token.Claims.(jwt.MapClaims)
 	if ok && token.Valid {
 		refreshUuid, ok := claims["refresh_uuid"].(string) //convert the interface to string
 		if !ok {
-			c.JSON(http.StatusUnprocessableEntity, err)
+			c.JSON(http.StatusUnprocessableEntity, "Cannot get uuid")
 			return
 		}
 		userId, err := strconv.ParseUint(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
@@ -139,7 +138,7 @@ func Refresh(c *gin.Context) {
 		}
 		c.JSON(http.StatusCreated, tokens)
 	} else {
-		c.JSON(http.StatusUnauthorized, "refresh expired")
+		c.JSON(http.StatusUnauthorized, "refresh token expired")
 	}
 }
 

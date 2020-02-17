@@ -40,7 +40,7 @@ func (f *fakeAuth) DeleteRefresh(string) (int64, error) {
 	panic("implement me")
 }
 
-func (f *fakeAuth) DeleteTokens(*auth.AccessDetails) (int64, error) {
+func (f *fakeAuth) DeleteTokens(*auth.AccessDetails) error {
 	panic("implement me")
 }
 
@@ -542,7 +542,6 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 func Test_UdpateFood_Invalid_Data(t *testing.T) {
 	auth.Token = &fakeToken{}
 	auth.Auth = &fakeAuth{}
-	//Mocking the fetching of token metadata from redis
 
 	//Mock extracting metadata
 	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){

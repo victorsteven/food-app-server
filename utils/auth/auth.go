@@ -15,7 +15,7 @@ type authInterface interface {
 	CreateAuth(uint64, *TokenDetails) error
 	FetchAuth(string) (uint64, error)
 	DeleteRefresh(string) (int64, error)
-	DeleteTokens(*AccessDetails) (int64, error)
+	DeleteTokens(*AccessDetails) error
 	NewRedisClient(host, port, password string) (*redis.Client, error)
 }
 
@@ -75,21 +75,24 @@ func (tk *tokenData) FetchAuth(tokenUuid string) (uint64, error) {
 }
 
 //Once a user row in the token table
-func (tk *tokenData) DeleteTokens(tokenUuid *AccessDetails) (int64, error) {
-	//get the refresh token
-	refreshToken := fmt.Sprintf("%s++%d", tokenUuid.TokenUuid, tokenUuid.UserId)
+func (tk *tokenData) DeleteTokens(authD *AccessDetails) error {
+	//get the refresh uuid
+	refreshUuid := fmt.Sprintf("%s++%d", authD.TokenUuid, authD.UserId)
 	//delete access token
-	deleted, err := tk.conn.Del(tokenUuid.TokenUuid).Result()
+	deletedAt, err := tk.conn.Del(authD.TokenUuid).Result()
 	if err != nil {
-		return 0, err
+		return err
 	}
-	//if deleted !=
 	//delete refresh token
-	deleted, err = tk.conn.Del(refreshToken).Result()
+	deletedRt, err := tk.conn.Del(refreshUuid).Result()
 	if err != nil {
-		return 0, err
+		return err
 	}
-	return deleted, nil
+	//When the record is deleted, the return value is 1
+	if deletedAt != 1 || deletedRt != 1 {
+		return errors.New("something went wrong")
+	}
+	return nil
 }
 
 func (tk *tokenData) DeleteRefresh(refreshUuid string) (int64, error) {
