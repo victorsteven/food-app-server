@@ -14,7 +14,7 @@ type tokenData struct {
 type authInterface interface {
 	CreateAuth(uint64, *TokenDetails) error
 	FetchAuth(string) (uint64, error)
-	DeleteRefresh(string) (int64, error)
+	DeleteRefresh(string) error
 	DeleteTokens(*AccessDetails) error
 	NewRedisClient(host, port, password string) (*redis.Client, error)
 }
@@ -95,12 +95,12 @@ func (tk *tokenData) DeleteTokens(authD *AccessDetails) error {
 	return nil
 }
 
-func (tk *tokenData) DeleteRefresh(refreshUuid string) (int64, error) {
+func (tk *tokenData) DeleteRefresh(refreshUuid string) error {
 	//delete refresh token
 	deleted, err := tk.conn.Del(refreshUuid).Result()
-	if err != nil {
-		return 0, err
+	if err != nil || deleted == 0 {
+		return err
 	}
-	return deleted, nil
+	return nil
 }
 

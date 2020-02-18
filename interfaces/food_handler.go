@@ -188,20 +188,19 @@ func GetFoodAndCreator(c *gin.Context) {
 }
 
 func DeleteFood(c *gin.Context) {
-
 	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
 	}
-	_, err = application.UserApp.GetUser(metadata.UserId)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
-		return
-	}
 	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "invalid request")
+		return
+	}
+	_, err = application.UserApp.GetUser(metadata.UserId)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
 		return
 	}
 	err = application.FoodApp.DeleteFood(foodId)

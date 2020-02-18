@@ -123,8 +123,8 @@ func Refresh(c *gin.Context) {
 			return
 		}
 		//Delete the previous Refresh Token
-		deleted, delErr := auth.Auth.DeleteRefresh(refreshUuid)
-		if delErr != nil || deleted == 0 { //if any goes wrong
+		 delErr := auth.Auth.DeleteRefresh(refreshUuid)
+		if delErr != nil  { //if any goes wrong
 			c.JSON(http.StatusUnauthorized, "unauthorized")
 			return
 		}

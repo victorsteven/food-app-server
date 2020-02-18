@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-
+//IF YOU HAVE TIME, YOU CAN TEST ALL FAILURE CASES TO IMPROVE COVERAGE
 
 func TestSaveUser_Success(t *testing.T) {
 	application.UserApp = &fakeUserApp{}
