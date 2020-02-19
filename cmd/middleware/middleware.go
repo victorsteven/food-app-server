@@ -39,6 +39,7 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 //Avoid a large file from loading into memory
+//If the file size is greater than 8MB dont allow it to even load into memory and waste our time.
 func MaxSizeAllowed(n int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, n)

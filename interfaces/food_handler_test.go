@@ -151,7 +151,7 @@ func TestSaverFood_Success(t *testing.T) {
 
 		}, nil
 	}
-	f :=  "./../utils/images/amala.jpg" //this is where the image is located
+	f :=  "./../utils/test_images/amala.jpg" //this is where the image is located
 	file, err := os.Open(f)
 	if err != nil {
 		t.Errorf("Cannot open file: %s\n", err)
@@ -236,7 +236,7 @@ func TestSaverFood_Unauthorized(t *testing.T) {
 		return nil, errors.New("unauthorized")
 	}
 
-	f :=  "./../utils/images/amala.jpg" //this is where the image is located
+	f :=  "./../utils/test_images/amala.jpg" //this is where the image is located
 	file, err := os.Open(f)
 	if err != nil {
 		t.Errorf("Cannot open file: %s\n", err)
@@ -447,7 +447,7 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 		return "dbdbf-dhbfh-bfy34-34jh-fd-updated.jpg", nil //this is fabricated
 	}
 
-	f :=  "./../utils/images/new_meal.jpeg" //this is where the image is located
+	f :=  "./../utils/test_images/new_meal.jpeg" //this is where the image is located
 	file, err := os.Open(f)
 	if err != nil {
 		t.Errorf("Cannot open file: %s\n", err)

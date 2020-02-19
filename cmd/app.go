@@ -3,8 +3,8 @@ package cmd
 import (
 	"food-app/cmd/middleware"
 	"food-app/database/rdbms"
+	"food-app/database/redisdb"
 	"food-app/domain/entity"
-	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
@@ -12,6 +12,7 @@ import (
 )
 //
 func init() {
+	//To load our environmental variables.
 	if err := godotenv.Load(); err != nil {
 		log.Println("no env gotten")
 	}
@@ -46,7 +47,7 @@ func StartApp() {
 	redis_port := os.Getenv("REDIS_PORT")
 	redis_password := os.Getenv("REDIS_PASSWORD")
 
-	_, err = auth.Auth.NewRedisClient(redis_host, redis_port, redis_password)
+	_, err = redisdb.NewRedisClient(redis_host, redis_port, redis_password)
 	if err != nil {
 		log.Fatal(err)
 	}

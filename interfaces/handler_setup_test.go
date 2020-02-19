@@ -3,7 +3,6 @@ package interfaces
 import (
 	"food-app/domain/entity"
 	"food-app/utils/auth"
-	"github.com/go-redis/redis/v7"
 	"github.com/joho/godotenv"
 	"log"
 	"mime/multipart"
@@ -103,9 +102,6 @@ func (f *fakeUploader) UploadFile(newname *multipart.FileHeader) (string, error)
 }
 func (f *fakeAuth) CreateAuth(userId uint64, authD *auth.TokenDetails) error {
 	return createAuth(userId, authD)
-}
-func (f *fakeAuth) NewRedisClient(host, port, password string) (*redis.Client, error) {
-	panic("implement me")
 }
 func (s *fakeSignin) SignIn(user *entity.User) (map[string]interface{}, map[string]string) {
 	return signin(user)

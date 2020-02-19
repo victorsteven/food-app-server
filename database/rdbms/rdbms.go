@@ -3,14 +3,12 @@ package rdbms
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
-	//_ "github.com/jinzhu/gorm/dialects/mysql" //postgres database driver
-	//_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
-
 	"log"
 )
 
 var db *gorm.DB
 
+//Using Postgres
 func NewDBConnection(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*gorm.DB, error) {
 	var err error
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
@@ -23,6 +21,7 @@ func NewDBConnection(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string
 	return db, nil
 }
 
+//Using MYSQL
 //func  NewDBConnection(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*gorm.DB, error)  {
 //	var err error
 //	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)

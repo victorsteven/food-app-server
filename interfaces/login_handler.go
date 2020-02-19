@@ -20,6 +20,7 @@ type sign struct {}
 
 var Sign signinInterface = &sign{} //The struct now implement the interface
 
+//We will need to mock this method when writing unit test, it is best we define it in an interface.
 func (s *sign) SignIn(user *entity.User) (map[string]interface{}, map[string]string){
 	var tokenErr = map[string]string{}
 	//check if the user details are correct:
@@ -83,6 +84,8 @@ func Logout(c *gin.Context) {
 	c.JSON(http.StatusOK, "Successfully logged out")
 }
 
+
+//Refresh is the function that uses the refresh_token to generate new pairs of refresh and access tokens.
 func Refresh(c *gin.Context) {
 	mapToken := map[string]string{}
 	if err := c.ShouldBindJSON(&mapToken); err != nil {
