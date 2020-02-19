@@ -13,7 +13,7 @@ func TestSaveUser_Success(t *testing.T) {
 	}
 	var user = entity.User{}
 	user.Email = "steven@example.com"
-	user.FirstName = "victor"
+	user.FirstName = "victoria"
 	user.LastName = "steven"
 	user.Password = "password"
 
@@ -22,11 +22,10 @@ func TestSaveUser_Success(t *testing.T) {
 	u, saveErr := repo.SaveUser(&user)
 	assert.Nil(t, saveErr)
 	assert.EqualValues(t, u.Email, "steven@example.com")
-	assert.EqualValues(t, u.FirstName, "victor")
+	assert.EqualValues(t, u.FirstName, "victoria")
 	assert.EqualValues(t, u.LastName, "steven")
 	//The pasword is supposed to be hashed, so, it should not the same the one we passed:
 	assert.NotEqual(t, u.Password, "password")
-
 }
 
 //Failure can be due to duplicate email, etc

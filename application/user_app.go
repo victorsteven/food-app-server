@@ -6,11 +6,10 @@ import (
 	"food-app/domain/infrastructure"
 )
 
-type UserImpl struct {
-	//Repository repository.UserRepository
+type userApp struct {
 }
 
-var UserApp UserAppInterface = &UserImpl{}
+var UserApp UserAppInterface = &userApp{}
 
 type UserAppInterface interface {
 	SaveUser(*entity.User) (*entity.User, map[string]string)
@@ -20,26 +19,26 @@ type UserAppInterface interface {
 }
 
 
-func (u *UserImpl) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewUserRepository(db)
-	return conn.SaveUser(user)
+func (u *userApp) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+	//db := rdbms.NewDB()
+	//conn := infrastructure.NewUserRepository(db)
+	//return conn.SaveUser(user)
+	return infrastructure.UserRepo.SaveUser(user)
 }
 
-func (u *UserImpl) GetUser(userId uint64) (*entity.User, error) {
+func (u *userApp) GetUser(userId uint64) (*entity.User, error) {
 	db := rdbms.NewDB()
 	conn := infrastructure.NewUserRepository(db)
 	return conn.GetUser(userId)
 }
 
-func (u *UserImpl) GetUsers() ([]entity.User, error) {
+func (u *userApp) GetUsers() ([]entity.User, error) {
 	db := rdbms.NewDB()
 	conn := infrastructure.NewUserRepository(db)
-	//u, err := entity.User{}
 	return conn.GetUsers()
 }
 
-func (u *UserImpl) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
+func (u *userApp) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
 	db := rdbms.NewDB()
 	conn := infrastructure.NewUserRepository(db)
 	foundUser, err := conn.GetUserByEmailAndPassword(user)
@@ -48,3 +47,4 @@ func (u *UserImpl) GetUserByEmailAndPassword(user *entity.User) (*entity.User, m
 	}
 	return foundUser, nil
 }
+

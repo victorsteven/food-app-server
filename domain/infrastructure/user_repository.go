@@ -2,30 +2,30 @@ package infrastructure
 
 import (
 	"errors"
+	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 	"food-app/utils/security"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 	"golang.org/x/crypto/bcrypt"
 	"strings"
 )
 
-type repositoryUsersCRUD struct {
+type userRepository struct {
 	db *gorm.DB
 }
 
-var UserRepo repository.UserRepository = &repositoryUsersCRUD{}
+var UserRepo repository.UserRepository = &userRepository{}
 
+//The struct userRepository now implement the UserRepository
 func NewUserRepository(db *gorm.DB) repository.UserRepository {
-	return &repositoryUsersCRUD{db}
+	return &userRepository{db}
 }
 
-//var UserRepo repository.UserRepository = &Server{}
-
-func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+func (r *userRepository) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+	db := rdbms.NewDB()
 	dbErr := map[string]string{}
-	err := r.db.Debug().Create(&user).Error
+	err := db.Debug().Create(&user).Error
 	if err != nil {
 		//If the email is already taken
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
@@ -39,9 +39,10 @@ func (r *repositoryUsersCRUD) SaveUser(user *entity.User) (*entity.User, map[str
 	return user, nil
 }
 
-func (r *repositoryUsersCRUD) GetUser(id uint64) (*entity.User, error) {
+func (r *userRepository) GetUser(id uint64) (*entity.User, error) {
+	db := rdbms.NewDB()
 	var user entity.User
-	err := r.db.Debug().Where("id = ?", id).Take(&user).Error
+	err := db.Debug().Where("id = ?", id).Take(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -51,11 +52,10 @@ func (r *repositoryUsersCRUD) GetUser(id uint64) (*entity.User, error) {
 	return &user, nil
 }
 
-func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
+func (r *userRepository) GetUsers() ([]entity.User, error) {
+	db := rdbms.NewDB()
 	var users []entity.User
-	//err := r.db.Debug().Find(&users).Error
-	err := r.db.Debug().Find(&users).Error
-	//db.Preload("Orders").Find(&users)
+	err := db.Debug().Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
@@ -65,10 +65,11 @@ func (r *repositoryUsersCRUD) GetUsers() ([]entity.User, error) {
 	return users, nil
 }
 
-func (r *repositoryUsersCRUD) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
+func (r *userRepository) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
+	db := rdbms.NewDB()
 	var user entity.User
 	dbErr := map[string]string{}
-	err := r.db.Debug().Where("email = ?", u.Email).Take(&user).Error
+	err := db.Debug().Where("email = ?", u.Email).Take(&user).Error
 	if gorm.IsRecordNotFoundError(err) {
 		dbErr["no_user"] = "user not found"
 		return nil, dbErr
