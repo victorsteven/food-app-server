@@ -55,3 +55,17 @@ func seedUser(db *gorm.DB) (*entity.User, error) {
 	}
 	return user, nil
 }
+
+func seedFood(db *gorm.DB) (*entity.Food, error) {
+	food := &entity.Food{
+		ID:        1,
+		Title: "food title",
+		Description:  "food desc",
+		UserID:     1,
+	}
+	err := db.Create(&food).Error
+	if err != nil {
+		return nil, err
+	}
+	return food, nil
+}

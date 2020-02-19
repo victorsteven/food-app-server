@@ -1,7 +1,6 @@
 package application
 
 import (
-	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/infrastructure"
 )
@@ -20,31 +19,21 @@ type FoodAppInterface interface {
 }
 
 func (u *FoodImpl) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
-	return conn.SaveFood(food)
+	return infrastructure.FoodRepo.SaveFood(food)
 }
 
 func (u *FoodImpl) GetAllFood() ([]entity.Food, error) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
-	return conn.GetAllFood()
+	return infrastructure.FoodRepo.GetAllFood()
 }
 
 func (u *FoodImpl) GetFood(foodId uint64) (*entity.Food, error) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
-	return conn.GetFood(foodId)
+	return infrastructure.FoodRepo.GetFood(foodId)
 }
 
 func (u *FoodImpl) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
-	return conn.UpdateFood(food)
+	return infrastructure.FoodRepo.UpdateFood(food)
 }
 
 func (u *FoodImpl) DeleteFood(foodId uint64) error {
-	db := rdbms.NewDB()
-	conn := infrastructure.NewRepositoryFoodCRUD(db)
-	return conn.DeleteFood(foodId)
+	return infrastructure.FoodRepo.DeleteFood(foodId)
 }

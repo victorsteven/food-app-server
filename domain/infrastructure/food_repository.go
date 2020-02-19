@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"errors"
 	"fmt"
+	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 	"github.com/jinzhu/gorm"
@@ -10,21 +11,25 @@ import (
 	"strings"
 )
 
-type repositoryFoodCRUD struct {
+type foodRepository struct {
 	db *gorm.DB
 }
 
-func NewRepositoryFoodCRUD(db *gorm.DB) repository.FoodRepository {
-	return &repositoryFoodCRUD{db}
+//NewRepositoryFood is useful when writing test cases, to swap the real database with a test db
+func NewFoodRepository(db *gorm.DB) repository.FoodRepository {
+	return &foodRepository{db}
 }
 
-func (r *repositoryFoodCRUD) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
+var FoodRepo repository.FoodRepository = &foodRepository{}
+
+func (r *foodRepository) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
+	db := rdbms.NewDB()
 	dbErr := map[string]string{}
-	err := r.db.Debug().Create(&food).Error
+	err := db.Debug().Create(&food).Error
 	if err != nil {
 		//since our title is unique
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
-			dbErr["email_taken"] = "email already taken"
+			dbErr["unique_title"] = "food title already taken"
 			return nil, dbErr
 		}
 		//any other db error
@@ -34,9 +39,10 @@ func (r *repositoryFoodCRUD) SaveFood(food *entity.Food) (*entity.Food, map[stri
 	return food, nil
 }
 
-func (r *repositoryFoodCRUD) GetFood(id uint64) (*entity.Food, error) {
+func (r *foodRepository) GetFood(id uint64) (*entity.Food, error) {
+	db := rdbms.NewDB()
 	var food entity.Food
-	err := r.db.Debug().Where("id = ?", id).Take(&food).Error
+	err := db.Debug().Where("id = ?", id).Take(&food).Error
 	if err != nil {
 		return nil, errors.New("database error, please try again")
 	}
@@ -47,9 +53,10 @@ func (r *repositoryFoodCRUD) GetFood(id uint64) (*entity.Food, error) {
 	return &food, nil
 }
 
-func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
+func (r *foodRepository) GetAllFood() ([]entity.Food, error) {
+	db := rdbms.NewDB()
 	var foods []entity.Food
-	err := r.db.Debug().Limit(100).Order("created_at desc").Find(&foods).Error
+	err := db.Debug().Limit(100).Order("created_at desc").Find(&foods).Error
 	if err != nil {
 		return nil, err
 	}
@@ -59,9 +66,10 @@ func (r *repositoryFoodCRUD) GetAllFood() ([]entity.Food, error) {
 	return foods, nil
 }
 
-func (r *repositoryFoodCRUD) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
+func (r *foodRepository) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
+	db := rdbms.NewDB()
 	dbErr := map[string]string{}
-	err := r.db.Debug().Save(&food).Error
+	err := db.Debug().Save(&food).Error
 	if err != nil {
 		//since our title is unique
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
@@ -75,9 +83,10 @@ func (r *repositoryFoodCRUD) UpdateFood(food *entity.Food) (*entity.Food, map[st
 	return food, nil
 }
 
-func (r *repositoryFoodCRUD) DeleteFood(id uint64) error {
+func (r *foodRepository) DeleteFood(id uint64) error {
+	db := rdbms.NewDB()
 	var food entity.Food
-	err := r.db.Debug().Where("id = ?", id).Delete(&food).Error
+	err := db.Debug().Where("id = ?", id).Delete(&food).Error
 	if err != nil {
 		return  errors.New("database error, please try again")
 	}
