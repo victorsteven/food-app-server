@@ -1,46 +1,39 @@
 package application
 
 import (
-	"fmt"
 	"food-app/domain/entity"
 	"food-app/domain/infrastructure"
+	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
 
-//we will mock the SaveUser method from the repository, so we can achieve unit test on the SaveUser method of the application:
+//IF YOU HAVE TIME, YOU CAN TEST ALL THE METHODS
 
 var (
 	saveUserRepo func(*entity.User) (*entity.User, map[string]string)
 )
 
-type fakeRepo struct {}
+type fakeUserRepo struct {}
 
-func (fr *fakeRepo) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+func (u *fakeUserRepo) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	return saveUserRepo(user)
 }
 
-func (fr *fakeRepo) GetUser(uint64) (*entity.User, error) {
+func (u *fakeUserRepo) GetUser(uint64) (*entity.User, error) {
 	panic("implement me")
 }
 
-func (fr *fakeRepo) GetUsers() ([]entity.User, error) {
+func (u *fakeUserRepo) GetUsers() ([]entity.User, error) {
 	panic("implement me")
 }
 
-func (fr *fakeRepo) GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string) {
+func (u *fakeUserRepo) GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string) {
 	panic("implement me")
 }
-//
-//func (fr *fakeRepo) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-//	return saveUserRepo(user)
-//}
 
-//app := UserImpl{DB: server.DB}
-//var server = interfaces.Server{}
-
-func TestUserImpl_SaveUser(t *testing.T) {
-	infrastructure.UserRepo = &fakeRepo{}
+func TestSaveUser_Success(t *testing.T) {
+	infrastructure.UserRepo = &fakeUserRepo{}
+	//Mock the response coming from the infrastructure
 	saveUserRepo = func(user *entity.User) (*entity.User,  map[string]string) {
 		return &entity.User{
 			ID:        1,
@@ -48,26 +41,18 @@ func TestUserImpl_SaveUser(t *testing.T) {
 			LastName:  "steven",
 			Email:     "steven@example.com",
 			Password:  "password",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-			DeletedAt: nil,
 		}, nil
 	}
-	//fmt.Println("The saveUserRepo: ", saveUserRepo)
-
 	user := &entity.User{
 		ID:        1,
 		FirstName: "victor",
 		LastName:  "steven",
 		Email:     "steven@example.com",
 		Password:  "password",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-		DeletedAt: nil,
 	}
 	u, err := UserApp.SaveUser(user)
-	fmt.Println(err)
-	fmt.Println(u)
-	//db := rdbms.NewDB()
-	//db.
+	assert.Nil(t, err)
+	assert.EqualValues(t, u.FirstName, "victor")
+	assert.EqualValues(t, u.LastName, "steven")
+	assert.EqualValues(t, u.Email, "steven@example.com")
 }
