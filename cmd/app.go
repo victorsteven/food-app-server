@@ -37,6 +37,12 @@ func StartApp() {
 		log.Fatal("cannot connect to the db: ", err)
 		return
 	}
+	err = conn.DropTableIfExists(&entity.User{}, &entity.Food{}).Error
+	if err != nil {
+		log.Fatal("cannot connect to the db: ", err)
+		return
+	}
+
 	conn.Debug().AutoMigrate(
 		entity.User{},
 		entity.Food{},
