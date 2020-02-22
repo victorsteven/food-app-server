@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"errors"
-	"fmt"
 	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
@@ -51,7 +50,6 @@ func (r *foodRepository) GetFood(id uint64) (*entity.Food, error) {
 		return nil, errors.New("database error, please try again")
 	}
 	if gorm.IsRecordNotFoundError(err) {
-		fmt.Println("error 2: ", err)
 		return nil, errors.New("food not found")
 	}
 	return &food, nil
@@ -77,7 +75,7 @@ func (r *foodRepository) UpdateFood(food *entity.Food) (*entity.Food, map[string
 	if err != nil {
 		//since our title is unique
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
-			dbErr["email_taken"] = "email already taken"
+			dbErr["unique_title"] = "title already taken"
 			return nil, dbErr
 		}
 		//any other db error
@@ -93,9 +91,6 @@ func (r *foodRepository) DeleteFood(id uint64) error {
 	err := db.Debug().Where("id = ?", id).Delete(&food).Error
 	if err != nil {
 		return  errors.New("database error, please try again")
-	}
-	if gorm.IsRecordNotFoundError(err) {
-		return  errors.New("food not found")
 	}
 	return  nil
 }

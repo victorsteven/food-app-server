@@ -631,7 +631,7 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 }
 
 
-func Test_UpdateFood_Invalid_Data(t *testing.T) {
+func TestUpdateFood_Invalid_Data(t *testing.T) {
 	auth.Token = &fakeToken{}
 	auth.Auth = &fakeAuth{}
 

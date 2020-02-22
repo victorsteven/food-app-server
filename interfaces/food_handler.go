@@ -122,7 +122,7 @@ func UpdateFood(c *gin.Context) {
 	//check if the food exist:
 	food, err := application.FoodApp.GetFood(foodId)
 	if err != nil {
-		c.JSON(http.StatusNotFound, "food not found")
+		c.JSON(http.StatusNotFound, err.Error())
 		return
 	}
 	//if the user id doesnt match with the one we have, dont update. This is the case where an authenticated user tries to update someone else post using postman, curl, etc
@@ -203,7 +203,7 @@ func DeleteFood(c *gin.Context) {
 	}
 	_, err = application.UserApp.GetUser(metadata.UserId)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
+		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
 	err = application.FoodApp.DeleteFood(foodId)
