@@ -28,7 +28,7 @@ jobs: # basic units of work in a run
           name: Run unit tests
           environment: # environment variables for the database url and path to migration files
             FORUM_DB_URL: "postgres://steven@localhost:5432/food-app-test?sslmode=disable"
-          command: go test -v ./tests/...  # our test is inside the "tests" folder, so target only that
+          command: go test -v ./...  # our test is inside the "tests" folder, so target only that
 
 workflows:
   version: 2
