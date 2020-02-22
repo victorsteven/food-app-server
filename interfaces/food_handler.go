@@ -8,6 +8,7 @@ import (
 	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
@@ -136,6 +137,8 @@ func UpdateFood(c *gin.Context) {
 	file, _ := c.FormFile("food_image")
 	if file != nil {
 		food.FoodImage, err = fileupload.Uploader.UploadFile(file)
+		//since i am using Digital Ocean(DO) Spaces to save image, i am appending my DO url here. You can comment this line since you may be using Digital Ocean Spaces.
+		food.FoodImage = os.Getenv("DO_SPACES_URL") + food.FoodImage
 		if err != nil {
 			c.JSON(http.StatusUnprocessableEntity, gin.H{
 				"upload_err": err.Error(),

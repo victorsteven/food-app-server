@@ -8,6 +8,7 @@ import (
 	"food-app/domain/repository"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
+	"os"
 	"strings"
 )
 
@@ -25,6 +26,9 @@ var FoodRepo repository.FoodRepository = &foodRepository{}
 func (r *foodRepository) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
 	db := rdbms.NewDB()
 	dbErr := map[string]string{}
+	//The images are uploaded to digital ocean spaces. So we need to prepend the url. This might not be your use case, if you are not uploading image to Digital Ocean.
+	food.FoodImage = os.Getenv("DO_SPACES_URL") + food.FoodImage
+
 	err := db.Debug().Create(&food).Error
 	if err != nil {
 		//since our title is unique

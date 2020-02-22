@@ -2,7 +2,6 @@ package entity
 
 import (
 	"html"
-	"os"
 	"strings"
 	"time"
 )
@@ -16,28 +15,10 @@ type Food struct {
 	CreatedAt   time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt   time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt   *time.Time `json:"deleted_at"`
-	//User    User      `json:"user"` //a user can create many food. This also means, anytime you are getting food, also get the user
 }
-
 
 func (f *Food) BeforeSave() {
 	f.Title = html.EscapeString(strings.TrimSpace(f.Title))
-}
-
-func (f *Food) AfterFind()  {
-	if f.FoodImage != "" {
-		f.FoodImage = os.Getenv("DO_SPACES_URL") + f.FoodImage
-	}
-}
-func (f *Food) AfterSave()  {
-	if f.FoodImage != "" {
-		f.FoodImage = os.Getenv("DO_SPACES_URL") + f.FoodImage
-	}
-}
-func (f *Food) AfterUpdate()  {
-	if f.FoodImage != "" {
-		f.FoodImage = os.Getenv("DO_SPACES_URL") + f.FoodImage
-	}
 }
 
 func (f *Food) Prepare() {
@@ -51,17 +32,17 @@ func (f *Food) Validate(action string) map[string]string {
 
 	switch strings.ToLower(action) {
 	case "update":
-		if f.Title == "" {
+		if f.Title == "" || f.Title == "null" {
 			errorMessages["title_required"] = "title is required"
 		}
-		if f.Description == "" {
+		if f.Description == "" || f.Description == "null" {
 			errorMessages["desc_required"] = "description is required"
 		}
 	default:
-		if f.Title == "" {
+		if f.Title == "" || f.Title == "null" {
 			errorMessages["title_required"] = "title is required"
 		}
-		if f.Description == "" {
+		if f.Description == "" || f.Description == "null" {
 			errorMessages["desc_required"] = "description is required"
 		}
 	}
