@@ -4,4 +4,4 @@ An article was written about this project [here](https://dev.to/stevensunflash/u
 
 A Frontend was also built with Javascript(VueJS) and deployed to netlify. This is the [url](https://food-app-ddd.netlify.com)
 
-The get frontend github repository [here](https://github.com/victorsteven/food-app-client)
+Get frontend github repository [here](https://github.com/victorsteven/food-app-client)
