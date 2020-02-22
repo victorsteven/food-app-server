@@ -1,0 +1,1 @@
+[![CircleCI](https://circleci.com/gh/victorsteven/food-app-server.svg?style=svg)](https://circleci.com/gh/victorsteven/food-app-server)
