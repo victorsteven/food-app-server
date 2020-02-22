@@ -11,7 +11,7 @@ import (
 //YOU CAN TEST METHOD FAILURES IF YOU HAVE TIME, TO IMPROVE COVERAGE.
 
 func TestSaveUser_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -36,7 +36,7 @@ func TestSaveUser_Success(t *testing.T) {
 //Here, we will attempt saving a user that is already saved
 func TestSaveUser_Failure(t *testing.T) {
 
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -61,7 +61,7 @@ func TestSaveUser_Failure(t *testing.T) {
 }
 
 func TestGetUser_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -80,7 +80,7 @@ func TestGetUser_Success(t *testing.T) {
 }
 
 func TestGetUsers_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -97,7 +97,7 @@ func TestGetUsers_Success(t *testing.T) {
 }
 
 func TestGetUserByEmailAndPassword_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}

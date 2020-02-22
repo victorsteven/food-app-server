@@ -7,7 +7,7 @@ import (
 )
 
 func TestSaveFood_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -28,7 +28,7 @@ func TestSaveFood_Success(t *testing.T) {
 //Failure can be due to duplicate email, etc
 //Here, we will attempt saving a food that is already saved
 func TestSaveFood_Failure(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -53,7 +53,7 @@ func TestSaveFood_Failure(t *testing.T) {
 }
 
 func TestGetFood_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -72,7 +72,7 @@ func TestGetFood_Success(t *testing.T) {
 }
 
 func TestGetAllFood_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -88,7 +88,7 @@ func TestGetAllFood_Success(t *testing.T) {
 }
 
 func TestUpdateFood_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -112,7 +112,7 @@ func TestUpdateFood_Success(t *testing.T) {
 
 //Duplicate title error
 func TestUpdateFood_Failure(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}
@@ -144,7 +144,7 @@ func TestUpdateFood_Failure(t *testing.T) {
 }
 
 func TestDeleteFood_Success(t *testing.T) {
-	conn, err := Database()
+	conn, err := DBConn()
 	if err != nil {
 		t.Fatalf("want non error, got %#v", err)
 	}

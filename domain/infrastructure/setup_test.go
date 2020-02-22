@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"fmt"
 	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"github.com/jinzhu/gorm"
@@ -9,12 +10,31 @@ import (
 	"os"
 )
 
-func init() {
-	if err := godotenv.Load(os.ExpandEnv("./../../.env")); err != nil {
-		log.Println("no env gotten")
+func DBConn() (*gorm.DB, error) {
+	if _, err := os.Stat("./../../.env"); !os.IsNotExist(err) {
+		var err error
+		err = godotenv.Load(os.ExpandEnv("./../../.env"))
+		if err != nil {
+			log.Fatalf("Error getting env %v\n", err)
+		}
+		return LocalDatabase()
 	}
+	return CIBuild()
 }
-func Database() (*gorm.DB, error) {
+
+//Circle CI DB
+func CIBuild() (*gorm.DB, error) {
+	var err error
+	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", "127.0.0.1", "5432", "steven", "food-app-test", "password")
+	conn, err := gorm.Open("postgres", DBURL)
+	if err != nil {
+		log.Fatal("This is the error:", err)
+	}
+	return conn, nil
+}
+
+//Local DB
+func LocalDatabase() (*gorm.DB, error) {
 	dbdriver := os.Getenv("TEST_DB_DRIVER")
 	host := os.Getenv("TEST_DB_HOST")
 	password := os.Getenv("TEST_DB_PASSWORD")
