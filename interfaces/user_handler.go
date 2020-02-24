@@ -8,7 +8,15 @@ import (
 	"strconv"
 )
 
-func SaveUser(c *gin.Context) {
+type Users struct {
+	us application.UserAppInterface
+}
+
+func NewUsers(us application.UserAppInterface) *Users {
+	return &Users{us: us}
+}
+
+func (u *Users) SaveUser(c *gin.Context) {
 	var user entity.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -22,32 +30,34 @@ func SaveUser(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateErr)
 		return
 	}
-	u, err := application.UserApp.SaveUser(&user)
+	//u, err := application.UserApp.SaveUser(&user)
+	newUser, err := u.us.SaveUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, u.PublicUser())
+	c.JSON(http.StatusCreated, newUser.PublicUser())
 }
 
-func GetUsers(c *gin.Context) {
-	us := entity.Users{} //customize user
+func (u *Users) GetUsers(c *gin.Context) {
+	users := entity.Users{} //customize user
 	var err error
-	us, err = application.UserApp.GetUsers()
+	//us, err = application.UserApp.GetUsers()
+	users, err = u.us.GetUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, us.PublicUsers())
+	c.JSON(http.StatusOK, users.PublicUsers())
 }
-
-func GetUser(c *gin.Context) {
+//
+func (u *Users) GetUser(c *gin.Context) {
 	userId, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	user, err := application.UserApp.GetUser(userId)
+	user, err := u.us.GetUser(userId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return

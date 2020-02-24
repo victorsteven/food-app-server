@@ -2,7 +2,6 @@ package interfaces
 
 import (
 	"fmt"
-	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/auth"
 	"github.com/dgrijalva/jwt-go"
@@ -18,55 +17,55 @@ type signinInterface interface {
 }
 type sign struct {}
 
-var Sign signinInterface = &sign{} //The struct now implement the interface
+//var Sign signinInterface = &sign{} //The struct now implement the interface
 
 //We will need to mock this method when writing unit test, it is best we define it in an interface.
-func (s *sign) SignIn(user *entity.User) (map[string]interface{}, map[string]string){
-	var tokenErr = map[string]string{}
-	//check if the user details are correct:
-	u, err := application.UserApp.GetUserByEmailAndPassword(user)
-	if err != nil {
-		return nil, err
-	}
-	ts, tErr := auth.Token.CreateToken(u.ID)
-	if tErr != nil {
-		tokenErr["token_error"] = tErr.Error()
-		return nil, err
-	}
-	saveErr := auth.Auth.CreateAuth(u.ID, ts)
-	if saveErr != nil {
-		return nil, err
-	}
+//func (s *sign) SignIn(user *entity.User) (map[string]interface{}, map[string]string){
+//	var tokenErr = map[string]string{}
+//	//check if the user details are correct:
+//	u, err := application.UserApp.GetUserByEmailAndPassword(user)
+//	if err != nil {
+//		return nil, err
+//	}
+//	ts, tErr := auth.Token.CreateToken(u.ID)
+//	if tErr != nil {
+//		tokenErr["token_error"] = tErr.Error()
+//		return nil, err
+//	}
+//	saveErr := auth.Auth.CreateAuth(u.ID, ts)
+//	if saveErr != nil {
+//		return nil, err
+//	}
+//
+//	userData := make(map[string]interface{})
+//	userData["access_token"] = ts.AccessToken
+//	userData["refresh_token"] = ts.RefreshToken
+//	userData["id"] = u.ID
+//	userData["first_name"] = u.FirstName
+//	userData["last_name"] = u.LastName
+//
+//	return userData, nil
+//}
 
-	userData := make(map[string]interface{})
-	userData["access_token"] = ts.AccessToken
-	userData["refresh_token"] = ts.RefreshToken
-	userData["id"] = u.ID
-	userData["first_name"] = u.FirstName
-	userData["last_name"] = u.LastName
-
-	return userData, nil
-}
-
-func Login(c *gin.Context) {
-	var user *entity.User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
-		return
-	}
-	//validate request:
-	validateUser := user.Validate("login")
-	if len(validateUser) > 0 {
-		c.JSON(http.StatusUnprocessableEntity, validateUser)
-		return
-	}
-	userData, err := Sign.SignIn(user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
-		return
-	}
-	c.JSON(http.StatusOK, userData)
-}
+//func Login(c *gin.Context) {
+//	var user *entity.User
+//	if err := c.ShouldBindJSON(&user); err != nil {
+//		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+//		return
+//	}
+//	//validate request:
+//	validateUser := user.Validate("login")
+//	if len(validateUser) > 0 {
+//		c.JSON(http.StatusUnprocessableEntity, validateUser)
+//		return
+//	}
+//	userData, err := Sign.SignIn(user)
+//	if err != nil {
+//		c.JSON(http.StatusInternalServerError, err)
+//		return
+//	}
+//	c.JSON(http.StatusOK, userData)
+//}
 
 func Logout(c *gin.Context) {
 	//check is the user is authenticated first

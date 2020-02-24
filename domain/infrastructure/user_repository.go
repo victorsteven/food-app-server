@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"errors"
-	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 	"food-app/utils/security"
@@ -11,11 +10,17 @@ import (
 	"strings"
 )
 
+
+func NewUserService(db *gorm.DB) repository.UserRepository {
+	return &userRepository{db}
+}
+
 type userRepository struct {
 	db *gorm.DB
 }
 
-var UserRepo repository.UserRepository = &userRepository{}
+//The userRepository implements the repository.UserRepository interface
+var _ repository.UserRepository = &userRepository{}
 
 //The struct userRepository now implement the UserRepository
 func NewUserRepository(db *gorm.DB) repository.UserRepository {
@@ -23,9 +28,9 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 }
 
 func (r *userRepository) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	dbErr := map[string]string{}
-	err := db.Debug().Create(&user).Error
+	err := r.db.Debug().Create(&user).Error
 	if err != nil {
 		//If the email is already taken
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
@@ -40,9 +45,9 @@ func (r *userRepository) SaveUser(user *entity.User) (*entity.User, map[string]s
 }
 
 func (r *userRepository) GetUser(id uint64) (*entity.User, error) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	var user entity.User
-	err := db.Debug().Where("id = ?", id).Take(&user).Error
+	err := r.db.Debug().Where("id = ?", id).Take(&user).Error
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +58,9 @@ func (r *userRepository) GetUser(id uint64) (*entity.User, error) {
 }
 
 func (r *userRepository) GetUsers() ([]entity.User, error) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	var users []entity.User
-	err := db.Debug().Find(&users).Error
+	err := r.db.Debug().Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +71,10 @@ func (r *userRepository) GetUsers() ([]entity.User, error) {
 }
 
 func (r *userRepository) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	var user entity.User
 	dbErr := map[string]string{}
-	err := db.Debug().Where("email = ?", u.Email).Take(&user).Error
+	err := r.db.Debug().Where("email = ?", u.Email).Take(&user).Error
 	if gorm.IsRecordNotFoundError(err) {
 		dbErr["no_user"] = "user not found"
 		return nil, dbErr

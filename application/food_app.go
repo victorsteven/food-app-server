@@ -9,7 +9,6 @@ type FoodImpl struct {
 	infrastructure repository.FoodRepository
 }
 
-
 func NewFoodImpl(inf repository.FoodRepository) *FoodImpl {
 	return &FoodImpl{ infrastructure: inf }
 }
