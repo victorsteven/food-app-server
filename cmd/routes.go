@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var foodHandler = interfaces.Handler{}
 func Route() *gin.Engine {
 
 	router.POST("/login", interfaces.Login)
@@ -19,11 +20,12 @@ func Route() *gin.Engine {
 	router.GET("/users/:user_id", interfaces.GetUser)
 
 
-	router.POST("/food", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), interfaces.SaveFood)
-	router.GET("/food", interfaces.GetAllFood)
-	router.GET("/food/:food_id", interfaces.GetFoodAndCreator)
-	router.PUT("/food/:food_id", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), interfaces.UpdateFood)
-	router.DELETE("/food/:food_id", interfaces.DeleteFood)
+
+	router.POST("/food", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), foodHandler.SaveFood)
+	router.GET("/food", foodHandler.GetAllFood)
+	router.GET("/food/:food_id", foodHandler.GetFoodAndCreator)
+	router.PUT("/food/:food_id", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), foodHandler.UpdateFood)
+	router.DELETE("/food/:food_id", foodHandler.DeleteFood)
 
 	return router
 }

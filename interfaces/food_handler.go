@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
-	"food-app/utils/fileupload"
 	"food-app/utils/auth"
+	"food-app/utils/fileupload"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -13,7 +13,16 @@ import (
 	"time"
 )
 
-func SaveFood(c *gin.Context) {
+
+type Handler struct {
+	app application.FoodAppInterface
+}
+
+func NewFoodApp(app application.FoodAppInterface) *Handler {
+	return &Handler{ app: app }
+}
+
+func (h *Handler) SaveFood(c *gin.Context) {
 	//check is the user is authenticated first
 	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
@@ -69,7 +78,7 @@ func SaveFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.FoodImage = uploadedFile
-	fo, saveErr := application.FoodApp.SaveFood(&food)
+	fo, saveErr := h.app.SaveFood(&food)
 	if saveErr != nil {
 		c.JSON(http.StatusInternalServerError, saveErr)
 		return
@@ -77,7 +86,7 @@ func SaveFood(c *gin.Context) {
 	c.JSON(http.StatusCreated, fo)
 }
 
-func UpdateFood(c *gin.Context) {
+func (h *Handler) UpdateFood(c *gin.Context) {
 	//Check if the user is authenticated first
 	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
@@ -120,7 +129,7 @@ func UpdateFood(c *gin.Context) {
 	}
 
 	//check if the food exist:
-	food, err := application.FoodApp.GetFood(foodId)
+	food, err := h.app.GetFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusNotFound, err.Error())
 		return
@@ -150,7 +159,7 @@ func UpdateFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.UpdatedAt = time.Now()
-	fo, dbUpdateErr := application.FoodApp.UpdateFood(food)
+	fo, dbUpdateErr := h.app.UpdateFood(food)
 	if dbUpdateErr != nil {
 		c.JSON(http.StatusInternalServerError, dbUpdateErr)
 		return
@@ -158,8 +167,8 @@ func UpdateFood(c *gin.Context) {
 	c.JSON(http.StatusOK, fo)
 }
 
-func GetAllFood(c *gin.Context) {
-	allfood, err := application.FoodApp.GetAllFood()
+func (h *Handler) GetAllFood(c *gin.Context) {
+	allfood, err := h.app.GetAllFood()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -167,13 +176,13 @@ func GetAllFood(c *gin.Context) {
 	c.JSON(http.StatusOK, allfood)
 }
 
-func GetFoodAndCreator(c *gin.Context) {
+func (h *Handler) GetFoodAndCreator(c *gin.Context) {
 	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "invalid request")
 		return
 	}
-	food, err := application.FoodApp.GetFood(foodId)
+	food, err := h.app.GetFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -190,7 +199,7 @@ func GetFoodAndCreator(c *gin.Context) {
 	c.JSON(http.StatusOK, foodAndUser)
 }
 
-func DeleteFood(c *gin.Context) {
+func (h *Handler) DeleteFood(c *gin.Context) {
 	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
@@ -206,7 +215,7 @@ func DeleteFood(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	err = application.FoodApp.DeleteFood(foodId)
+	err = h.app.DeleteFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
