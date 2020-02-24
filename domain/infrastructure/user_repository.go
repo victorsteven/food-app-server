@@ -72,6 +72,7 @@ func (r *userRepository) GetUsers() ([]entity.User, error) {
 
 func (r *userRepository) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
 	//db := rdbms.NewDB()
+	//fmt.Println("WE ARE HERE")
 	var user entity.User
 	dbErr := map[string]string{}
 	err := r.db.Debug().Where("email = ?", u.Email).Take(&user).Error

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"food-app/domain/infrastructure"
 	"food-app/interfaces"
+	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
+	"log"
 )
 
 const (
@@ -13,11 +15,16 @@ const (
 	DbName   = "food-app"
 	DbPassword = "password"
 	DbUser     = "steven"
+
+	redis_host = "127.0.0.1"
+	redis_port = "6379"
+	redis_password = ""
 )
+
+
 
 func main() {
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
-
 	services, err := infrastructure.NewServices(DBURL)
 	if err != nil {
 		panic(err)
@@ -25,21 +32,27 @@ func main() {
 	defer services.Close()
 	services.Automigrate()
 
-	//r := mux.NewRouter()
+
+	redisService, err := auth.NewRedisDB(redis_host, redis_port, redis_password)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	r := gin.Default()
 
-	usersC := interfaces.NewUsers(services.User)
+	users := interfaces.NewUsers(services.User, redisService.Auth)
 
-	r.POST("/users", usersC.SaveUser)
-	r.GET("/users", usersC.GetUsers)
-	r.GET("/users/:user_id", usersC.GetUser)
+	r.POST("/login", users.Login)
+	r.POST("/users", users.SaveUser)
+	r.GET("/users", users.GetUsers)
+	r.GET("/users/:user_id", users.GetUser)
 
 	r.Run(":8888")
 
 	//galleriesC := controllers.NewGalleries(services.Gallery, services.Image, r)
 
 	//isProd := false
-	//b, err := rand.Bytes(32)
+	//b, err := rand.Bytes(32)x
 	//must(err)
 	//csrfMw := csrf.Protect(b, csrf.Secure(isProd))
 	//fmt.Println("this is the csrf: ", csrfMw)
