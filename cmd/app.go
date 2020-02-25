@@ -53,7 +53,7 @@ func StartApp() {
 	}
 	router.Use(middleware.CORSMiddleware())
 
-	Route()
+	//Route()
 
 
 	app_port := os.Getenv("PORT") //using heroku host

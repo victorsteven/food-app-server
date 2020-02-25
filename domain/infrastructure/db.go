@@ -1,20 +1,24 @@
 package infrastructure
 
 import (
+	"fmt"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+
+
 )
 
 type Services struct {
 	User repository.UserRepository
-	//User    UserService
-	//Image   ImageService
+	Food    repository.FoodRepository
 	db      *gorm.DB
 }
 
-func NewServices(connectionInfo string) (*Services, error) {
-	db, err := gorm.Open("postgres", connectionInfo)
+func NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*Services, error) {
+	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
+	db, err := gorm.Open(Dbdriver, DBURL)
 	if err != nil {
 		return nil, err
 	}
@@ -22,8 +26,7 @@ func NewServices(connectionInfo string) (*Services, error) {
 
 	return &Services{
 		User:    NewUserService(db),
-		//Gallery: NewGalleryService(db),
-		//Image:   NewImageService(),
+		Food:    NewFoodService(db),
 		db:      db,
 	}, nil
 }
