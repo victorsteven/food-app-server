@@ -47,14 +47,15 @@ func main() {
 
 	r := gin.Default()
 
-	users := interfaces.NewUsers(services.User, redisService.Auth)
-	foods := interfaces.NewFood(services.Food, services.User, redisService.Auth)
+	tk  := auth.NewToken()
+
+	users := interfaces.NewUsers(services.User, redisService.Auth, tk)
+	foods := interfaces.NewFood(services.Food, services.User, redisService.Auth, tk)
 
 
 	r.POST("/login", users.Login)
 	r.POST("/logout", users.Logout)
 	r.POST("/refresh", users.Refresh)
-
 
 	r.POST("/users", users.SaveUser)
 	r.GET("/users", users.GetUsers)

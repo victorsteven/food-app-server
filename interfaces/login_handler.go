@@ -3,7 +3,6 @@ package interfaces
 import (
 	"fmt"
 	"food-app/domain/entity"
-	"food-app/utils/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -34,6 +33,7 @@ import (
 //type sign struct {}
 //var Sign signinInterface = &sign{} //The struct now implement the interface
 
+
 //We will need to mock this method when writing unit test, it is best we define it in an interface.
 func (s *Users) SignIn(user *entity.User) (map[string]interface{}, map[string]string){
 	var tokenErr = map[string]string{}
@@ -42,7 +42,7 @@ func (s *Users) SignIn(user *entity.User) (map[string]interface{}, map[string]st
 	if err != nil {
 		return nil, err
 	}
-	ts, tErr := auth.Token.CreateToken(u.ID)
+	ts, tErr := s.tk.CreateToken(u.ID)
 	if tErr != nil {
 		tokenErr["token_error"] = tErr.Error()
 		return nil, err
@@ -51,7 +51,6 @@ func (s *Users) SignIn(user *entity.User) (map[string]interface{}, map[string]st
 	if saveErr != nil {
 		return nil, err
 	}
-
 	userData := make(map[string]interface{})
 	userData["access_token"] = ts.AccessToken
 	userData["refresh_token"] = ts.RefreshToken
@@ -84,7 +83,7 @@ func (s *Users) Login(c *gin.Context) {
 
 func (s *Users) Logout(c *gin.Context) {
 	//check is the user is authenticated first
-	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := s.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
@@ -146,7 +145,7 @@ func (s *Users) Refresh(c *gin.Context) {
 			return
 		}
 		//Create new pairs of refresh and access tokens
-		ts, createErr := auth.Token.CreateToken(userId)
+		ts, createErr := s.tk.CreateToken(userId)
 		if  createErr != nil {
 			c.JSON(http.StatusForbidden, createErr.Error())
 			return

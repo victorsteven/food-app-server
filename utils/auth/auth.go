@@ -56,7 +56,6 @@ type TokenDetails struct {
 
 //Save token metadata to Redis
 func (tk *clientData) CreateAuth(userid uint64, td *TokenDetails) error {
-	//conn := redisdb.NewRedisDB()
 	at := time.Unix(td.AtExpires, 0) //converting Unix to UTC(to Time object)
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()
@@ -77,7 +76,6 @@ func (tk *clientData) CreateAuth(userid uint64, td *TokenDetails) error {
 
 //Check the metadata saved
 func (tk *clientData) FetchAuth(tokenUuid string) (uint64, error) {
-	//conn := redisdb.NewRedisDB()
 	userid, err := tk.client.Get(tokenUuid).Result()
 	if err != nil {
 		return 0, err
@@ -88,7 +86,6 @@ func (tk *clientData) FetchAuth(tokenUuid string) (uint64, error) {
 
 //Once a user row in the token table
 func (tk *clientData) DeleteTokens(authD *AccessDetails) error {
-	//conn := redisdb.NewRedisDB()
 	//get the refresh uuid
 	refreshUuid := fmt.Sprintf("%s++%d", authD.TokenUuid, authD.UserId)
 	//delete access token
@@ -109,8 +106,6 @@ func (tk *clientData) DeleteTokens(authD *AccessDetails) error {
 }
 
 func (tk *clientData) DeleteRefresh(refreshUuid string) error {
-	//conn := redisdb.NewRedisDB()
-
 	//delete refresh token
 	deleted, err := tk.client.Del(refreshUuid).Result()
 	if err != nil || deleted == 0 {

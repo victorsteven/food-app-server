@@ -12,12 +12,14 @@ import (
 type Users struct {
 	us application.UserAppInterface
 	rd auth.AuthInterface
+	tk auth.TokenInterface
 }
-//Users contructor
-func NewUsers(us application.UserAppInterface, rd auth.AuthInterface) *Users {
+//Users constructor
+func NewUsers(us application.UserAppInterface, rd auth.AuthInterface, tk auth.TokenInterface) *Users {
 	return &Users{
 		us: us,
 		rd: rd,
+		tk: tk,
 	}
 }
 

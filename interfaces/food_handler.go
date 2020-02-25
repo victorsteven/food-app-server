@@ -17,20 +17,23 @@ import (
 type Food struct {
 	foodApp application.FoodAppInterface
 	userApp application.UserAppInterface
+	tk auth.TokenInterface
 	rd auth.AuthInterface
 }
 
-func NewFood(fApp application.FoodAppInterface, uApp application.UserAppInterface, rd auth.AuthInterface) *Food {
+//Foods constructor
+func NewFood(fApp application.FoodAppInterface, uApp application.UserAppInterface, rd auth.AuthInterface, tk auth.TokenInterface) *Food {
 	return &Food{
 		foodApp: fApp,
 		userApp: uApp,
 		rd:      rd,
+		tk:      tk,
 	}
 }
 
 func (fu *Food) SaveFood(c *gin.Context) {
 	//check is the user is authenticated first
-	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := fu.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
@@ -94,7 +97,7 @@ func (fu *Food) SaveFood(c *gin.Context) {
 
 func (fu *Food) UpdateFood(c *gin.Context) {
 	//Check if the user is authenticated first
-	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := fu.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
@@ -206,7 +209,7 @@ func (fu *Food) GetFoodAndCreator(c *gin.Context) {
 }
 
 func (fu *Food) DeleteFood(c *gin.Context) {
-	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := fu.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return

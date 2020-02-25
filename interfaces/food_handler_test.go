@@ -20,12 +20,17 @@ import (
 	"testing"
 )
 
+var fakeT auth.Token = &fakeToken{}
+var fakeA auth.AuthInterface
+
+auth.Token = &fakeToken{}
+auth.Auth = &fakeAuth{}
+
 //IF YOU HAVE TIME, YOU CAN TEST ALL FAILURE CASES TO IMPROVE COVERAGE
 
 func Test_SaveFood_Invalid_Data(t *testing.T) {
 
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
+
 
 	//Mock extracting metadata
 	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
