@@ -39,7 +39,6 @@ func main() {
 	defer services.Close()
 	services.Automigrate()
 
-
 	redisService, err := auth.NewRedisDB(redis_host, redis_port, redis_password)
 	if err != nil {
 		log.Fatal(err)
@@ -52,11 +51,6 @@ func main() {
 	users := interfaces.NewUsers(services.User, redisService.Auth, tk)
 	foods := interfaces.NewFood(services.Food, services.User, redisService.Auth, tk)
 
-
-	r.POST("/login", users.Login)
-	r.POST("/logout", users.Logout)
-	r.POST("/refresh", users.Refresh)
-
 	r.POST("/users", users.SaveUser)
 	r.GET("/users", users.GetUsers)
 	r.GET("/users/:user_id", users.GetUser)
@@ -66,6 +60,10 @@ func main() {
 	r.GET("/food/:food_id", foods.GetFoodAndCreator)
 	r.DELETE("/food/:food_id", foods.DeleteFood)
 	r.GET("/food", foods.GetAllFood)
+
+	r.POST("/login", users.Login)
+	r.POST("/logout", users.Logout)
+	r.POST("/refresh", users.Refresh)
 
 
 	r.Run(":8888")

@@ -3,22 +3,18 @@ package interfaces
 import (
 	"food-app/domain/entity"
 	"food-app/utils/auth"
-	"github.com/joho/godotenv"
-	"log"
 	"mime/multipart"
 	"net/http"
-	"os"
-	"testing"
 )
 
 //THIS FILE CONTAINS MOCK DATA FROM THE APPLICATION LAYER, THE AUTHENTICATION, ETC. WE DO THIS TO ACHIEVE UNIT TESTING FOR THE CONTROLLER FUNCTIONS
 
-func TestMain(m *testing.M) {
-	if err := godotenv.Load(os.ExpandEnv("./../.env")); err != nil {
-		log.Println("no env gotten")
-	}
-	os.Exit(m.Run())
-}
+//func TestMain(m *testing.M) {
+//	if err := godotenv.Load(os.ExpandEnv("./../.env")); err != nil {
+//		log.Println("no env gotten")
+//	}
+//	os.Exit(m.Run())
+//}
 
 var (
 	//User
@@ -38,6 +34,7 @@ var (
 	tokenMetadata func(*http.Request) (*auth.AccessDetails, error)
 	fetchAuth func(uuid string) (uint64, error)
 	createAuth func(uint64, *auth.TokenDetails) error
+
 	deleteTokens func(*auth.AccessDetails) error
 	deleteRefresh func(string) error
 	createToken func(userid uint64) (*auth.TokenDetails, error)
@@ -67,6 +64,8 @@ func (fa *fakeUserApp) GetUser(userId uint64) (*entity.User, error) {
 func (fa *fakeUserApp) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	return saveUserApp(user)
 }
+
+
 func (f *fakeFoodApp) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
 	return saveFoodApp(food)
 }
@@ -82,27 +81,34 @@ func (f *fakeFoodApp) UpdateFood(food *entity.Food) (*entity.Food, map[string]st
 func (f *fakeFoodApp) DeleteFood(foodId uint64) error {
 	return deleteFoodApp(foodId)
 }
+
+
 func (f *fakeAuth) DeleteRefresh(refreshUuid string) error {
 	return deleteRefresh(refreshUuid)
 }
 func (f *fakeAuth) DeleteTokens(authD *auth.AccessDetails) error {
 	return deleteTokens(authD)
 }
-func (f *fakeToken) CreateToken(userid uint64) (*auth.TokenDetails, error) {
-	return createToken(userid)
-}
 func (f *fakeAuth) FetchAuth(uuid string) (uint64, error) {
 	return fetchAuth(uuid)
-}
-func (f *fakeToken) ExtractTokenMetadata(r *http.Request) (*auth.AccessDetails, error) {
-	return tokenMetadata(r)
-}
-func (f *fakeUploader) UploadFile(newname *multipart.FileHeader) (string, error) {
-	return uploadFile(newname)
 }
 func (f *fakeAuth) CreateAuth(userId uint64, authD *auth.TokenDetails) error {
 	return createAuth(userId, authD)
 }
+
+
+func (f *fakeToken) CreateToken(userid uint64) (*auth.TokenDetails, error) {
+	return createToken(userid)
+}
+func (f *fakeToken) ExtractTokenMetadata(r *http.Request) (*auth.AccessDetails, error) {
+	return tokenMetadata(r)
+}
+
+
+func (f *fakeUploader) UploadFile(newname *multipart.FileHeader) (string, error) {
+	return uploadFile(newname)
+}
+
 func (s *fakeSignin) SignIn(user *entity.User) (map[string]interface{}, map[string]string) {
 	return signin(user)
 }

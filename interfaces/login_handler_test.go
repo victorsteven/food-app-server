@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
@@ -18,9 +17,9 @@ import (
 
 func TestSignin_Success(t *testing.T) {
 	//Mock all the functions that the function depend on.
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
+	//auth.Token = &fakeToken{}
+	//auth.Auth = &fakeAuth{}
+	//application.UserApp = &fakeUserApp{}
 
 	getUserEmailPasswordApp = func(*entity.User) (*entity.User, map[string]string) {
 		return &entity.User{
@@ -47,7 +46,7 @@ func TestSignin_Success(t *testing.T) {
 		FirstName: "victor",
 		LastName:  "steven",
 	}
-	details, err := Sign.SignIn(user)
+	details, err := users.SignIn(user)
 	assert.Nil(t, err)
 	assert.EqualValues(t, details["access_token"], "this-is-the-access-token")
 	assert.EqualValues(t, details["refresh_token"], "this-is-the-refresh-token")
@@ -82,7 +81,7 @@ func Test_Login_Invalid_Data(t *testing.T) {
 	for _, v := range samples {
 
 		r := gin.Default()
-		r.POST("/login", Login)
+		r.POST("/login", users.Login)
 		req, err := http.NewRequest(http.MethodPost, "/login", bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -113,7 +112,7 @@ func Test_Login_Invalid_Data(t *testing.T) {
 
 func Test_Login_Success(t *testing.T) {
 	//Mock the signin method and return the response:
-	Sign = &fakeSignin{} //this where the swap happens
+	//Sign = &fakeSignin{} //this where the swap happens
 	signin = func(user *entity.User) (map[string]interface{}, map[string]string){
 		return map[string]interface{}{
 			"access_token": "this-is-the-access-token",
@@ -125,7 +124,7 @@ func Test_Login_Success(t *testing.T) {
 	}
 	inputJSON :=  `{"email": "steven@example.com","password": "password"}`
 	r := gin.Default()
-	r.POST("/login", Login)
+	r.POST("/login", users.Login)
 	req, err := http.NewRequest(http.MethodPost, "/login", bytes.NewBufferString(inputJSON))
 	if err != nil {
 		t.Errorf("this is the error: %v\n", err)
@@ -148,8 +147,8 @@ func Test_Login_Success(t *testing.T) {
 }
 
 func TestLogout_Success(t *testing.T) {
-	auth.Token = &fakeToken{} //swap real implementation with fake
-	auth.Auth = &fakeAuth{}
+	//auth.Token = &fakeToken{} //swap real implementation with fake
+	//auth.Auth = &fakeAuth{}
 
 	//Mock extracting metadata
 	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
@@ -173,7 +172,7 @@ func TestLogout_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.POST("/logout", Logout)
+	r.POST("/logout", users.Logout)
 	req.Header.Set("Authorization", tokenString)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
@@ -190,8 +189,8 @@ func TestLogout_Success(t *testing.T) {
 
 func TestRefresh_Success(t *testing.T) {
 
-	auth.Token = &fakeToken{} //swap real implementation with fake
-	auth.Auth = &fakeAuth{}
+	//auth.Token = &fakeToken{} //swap real implementation with fake
+	//auth.Auth = &fakeAuth{}
 
 	deleteRefresh  = func(string) error {
 		return nil
@@ -211,7 +210,7 @@ func TestRefresh_Success(t *testing.T) {
 	}
 
 	r := gin.Default()
-	r.POST("/refresh", Refresh)
+	r.POST("/refresh", users.Refresh)
 
 	inputJSON := `{
 		"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWZyZXNoX3V1aWQiOiI4MzJjODgyMS0wMzUyLTRjN2EtOTZjNi04MzM5YzBlZjJkZTkrKzE0IiwidXNlcl9pZCI6MTR9.Sd6IOmvbgwf825jlQxt7A-sDpOK1vubUVoxCQuvtC_A"

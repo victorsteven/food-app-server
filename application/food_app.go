@@ -24,21 +24,21 @@ type FoodAppInterface interface {
 }
 
 func (f *FoodApp) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
-	return f.SaveFood(food)
+	return f.fr.SaveFood(food)
 }
 
 func (f *FoodApp) GetAllFood() ([]entity.Food, error) {
-	return f.GetAllFood()
+	return f.fr.GetAllFood()
 }
 
 func (f *FoodApp) GetFood(foodId uint64) (*entity.Food, error) {
-	return f.GetFood(foodId)
+	return f.fr.GetFood(foodId)
 }
 
 func (f *FoodApp) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
-	return f.UpdateFood(food)
+	return f.fr.UpdateFood(food)
 }
 
 func (f *FoodApp) DeleteFood(foodId uint64) error {
-	return f.DeleteFood(foodId)
+	return f.fr.DeleteFood(foodId)
 }

@@ -20,16 +20,26 @@ import (
 	"testing"
 )
 
-var fakeT auth.Token = &fakeToken{}
-var fakeA auth.AuthInterface
+var fakeT auth.TokenInterface = &fakeToken{}
+var fakeA auth.AuthInterface = &fakeAuth{}
+var fakeFood application.FoodAppInterface = &fakeFoodApp{}
+var fakeUser application.UserAppInterface = &fakeUserApp{}
 
-auth.Token = &fakeToken{}
-auth.Auth = &fakeAuth{}
+//var fakeFood repository.FoodRepository = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
+
+//application.UserApp = &fakeUserApp{}
+
+
+//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+
+var food = Food{}
+
 
 //IF YOU HAVE TIME, YOU CAN TEST ALL FAILURE CASES TO IMPROVE COVERAGE
 
 func Test_SaveFood_Invalid_Data(t *testing.T) {
 
+	//var _ auth.AuthInterface = &fakeAuth{}
 
 
 	//Mock extracting metadata
@@ -80,7 +90,7 @@ func Test_SaveFood_Invalid_Data(t *testing.T) {
 		tokenString := fmt.Sprintf("Bearer %v", token)
 
 		r := gin.Default()
-		r.POST("/food", SaveFood)
+		r.POST("/food", food.SaveFood)
 		req, err := http.NewRequest(http.MethodPost, "/food", bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -116,10 +126,10 @@ func Test_SaveFood_Invalid_Data(t *testing.T) {
 
 
 func TestSaverFood_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//auth.Token = &fakeToken{}
+	//auth.Auth = &fakeAuth{}
+	//application.UserApp = &fakeUserApp{}
 	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
@@ -209,7 +219,7 @@ func TestSaverFood_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.POST("/food", SaveFood)
+	r.POST("/food", food.SaveFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -230,10 +240,10 @@ func TestSaverFood_Success(t *testing.T) {
 
 //When wrong token is provided
 func TestSaverFood_Unauthorized(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//auth.Token = &fakeToken{}
+	//auth.Auth = &fakeAuth{}
+	//application.UserApp = &fakeUserApp{}
 	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
@@ -293,7 +303,7 @@ func TestSaverFood_Unauthorized(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.POST("/food", SaveFood)
+	r.POST("/food", food.SaveFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -309,7 +319,7 @@ func TestSaverFood_Unauthorized(t *testing.T) {
 }
 
 func TestGetAllFood_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
 
 	//Return Food to check for, with our mock
 	getAllFoodApp = func() ([]entity.Food, error) {
@@ -335,7 +345,7 @@ func TestGetAllFood_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.GET("/food", GetAllFood)
+	r.GET("/food", food.GetAllFood)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
@@ -350,8 +360,8 @@ func TestGetAllFood_Success(t *testing.T) {
 
 
 func TestGetFoodAndCreator_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	application.UserApp = &fakeUserApp{}
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//application.UserApp = &fakeUserApp{}
 
 	getUserApp = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
@@ -377,7 +387,7 @@ func TestGetFoodAndCreator_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.GET("/food/:food_id", GetFoodAndCreator)
+	r.GET("/food/:food_id", food.GetFoodAndCreator)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
@@ -401,10 +411,10 @@ func TestGetFoodAndCreator_Success(t *testing.T) {
 
 
 func TestUpdateFood_Success_With_File(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//auth.Token = &fakeToken{}
+	//auth.Auth = &fakeAuth{}
+	//application.UserApp = &fakeUserApp{}
 	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
@@ -506,7 +516,7 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.PUT("/food/:food_id", UpdateFood)
+	r.PUT("/food/:food_id", food.UpdateFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -528,10 +538,10 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 
 //This is where file is not updated. A user can choose not to update file, in that case, the old file will still be used
 func TestUpdateFood_Success_Without_File(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//auth.Token = &fakeToken{}
+	//auth.Auth = &fakeAuth{}
+	//application.UserApp = &fakeUserApp{}
 	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
@@ -616,7 +626,7 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.PUT("/food/:food_id", UpdateFood)
+	r.PUT("/food/:food_id", food.UpdateFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -637,8 +647,8 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 
 
 func TestUpdateFood_Invalid_Data(t *testing.T) {
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
+	//auth.Token = &fakeToken{}
+	//auth.Auth = &fakeAuth{}
 
 	//Mock extracting metadata
 	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
@@ -692,7 +702,7 @@ func TestUpdateFood_Invalid_Data(t *testing.T) {
 		foodID := strconv.Itoa(1)
 
 		r := gin.Default()
-		r.POST("/food/:food_id", UpdateFood)
+		r.POST("/food/:food_id", food.UpdateFood)
 		req, err := http.NewRequest(http.MethodPost, "/food/"+foodID, bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -728,10 +738,10 @@ func TestUpdateFood_Invalid_Data(t *testing.T) {
 }
 
 func TestDeleteFood_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//auth.Token = &fakeToken{}
+	//auth.Auth = &fakeAuth{}
+	//application.UserApp = &fakeUserApp{}
 
 	//Mock extracting metadata
 	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
@@ -777,7 +787,7 @@ func TestDeleteFood_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.DELETE("/food/:food_id", DeleteFood)
+	r.DELETE("/food/:food_id", food.DeleteFood)
 	req.Header.Set("Authorization", tokenString)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)

@@ -17,6 +17,7 @@ type Repositories struct {
 }
 
 func NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*Repositories, error) {
+	var err error
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
 	db, err := gorm.Open(Dbdriver, DBURL)
 	if err != nil {
@@ -25,26 +26,18 @@ func NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*
 	db.LogMode(true)
 
 	return &Repositories{
-		User:    NewUserRepository(db),
-		Food:    NewFoodRepository(db),
-		db:      db,
+		User: NewUserRepository(db),
+		Food: NewFoodRepository(db),
+		db:   db,
 	}, nil
 }
 
 //closes the  database connection
-func (s *Repositories) Close() error {
-	return s.db.Close()
+func (r *Repositories) Close() error {
+	return r.db.Close()
 }
 
-//Drops all tables and rebuild them
-//func (s *Services) DestructiveReset() error {
-//	if err := s.db.DropTableIfExists(&User{}, &Gallery{}).Error; err != nil {
-//		return err
-//	}
-//	return s.Automigrate()
-//}
-
 //This migrate all tables
-func (s *Repositories) Automigrate() error {
-	return s.db.AutoMigrate(&entity.User{}, &entity.Food{}).Error
+func (r *Repositories) Automigrate() error {
+	return r.db.AutoMigrate(&entity.User{}, &entity.Food{}).Error
 }

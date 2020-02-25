@@ -2,7 +2,6 @@ package application
 
 import (
 	"food-app/domain/entity"
-	"food-app/domain/repository"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -35,7 +34,9 @@ func (f *fakeFoodRepo) DeleteFood(foodId uint64) error {
 	return deleteFoodRepo(foodId)
 }
 
-var fakeFood repository.FoodRepository = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
+//var fakeFood repository.FoodRepository = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
+var foodApp FoodAppInterface = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
+
 
 func TestSaveFood_Success(t *testing.T) {
 	//Mock the response coming from the infrastructure
@@ -53,7 +54,7 @@ func TestSaveFood_Success(t *testing.T) {
 		Description:  "food description",
 		UserID:     1,
 	}
-	f, err := fakeFood.SaveFood(food)
+	f, err := foodApp.SaveFood(food)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title")
 	assert.EqualValues(t, f.Description, "food description")
@@ -71,7 +72,7 @@ func TestGetFood_Success(t *testing.T) {
 		}, nil
 	}
 	foodId := uint64(1)
-	f, err := fakeFood.GetFood(foodId)
+	f, err := foodApp.GetFood(foodId)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title")
 	assert.EqualValues(t, f.Description, "food description")
@@ -97,7 +98,7 @@ func TestAllFood_Success(t *testing.T) {
 
 		}, nil
 	}
-	f, err := fakeFood.GetAllFood()
+	f, err := foodApp.GetAllFood()
 	assert.Nil(t, err)
 	assert.EqualValues(t, len(f), 2)
 }
@@ -118,7 +119,7 @@ func TestUpdateFood_Success(t *testing.T) {
 		Description:  "food description update",
 		UserID:     1,
 	}
-	f, err := fakeFood.UpdateFood(food)
+	f, err := foodApp.UpdateFood(food)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title update")
 	assert.EqualValues(t, f.Description, "food description update")
@@ -131,6 +132,6 @@ func TestDeleteFood_Success(t *testing.T) {
 		return nil
 	}
 	foodId := uint64(1)
-	err := fakeFood.DeleteFood(foodId)
+	err := foodApp.DeleteFood(foodId)
 	assert.Nil(t, err)
 }

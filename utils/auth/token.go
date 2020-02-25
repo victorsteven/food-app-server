@@ -94,6 +94,7 @@ func ExtractToken(r *http.Request) string {
 }
 
 func (t *Token) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
+	fmt.Println("WE ENTERED METADATA")
 	token, err := VerifyToken(r)
 	if err != nil {
 		return nil, err

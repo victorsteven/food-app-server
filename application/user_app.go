@@ -1,6 +1,7 @@
 package application
 
 import (
+	"fmt"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 )
@@ -9,7 +10,7 @@ type UserApp struct {
 	us repository.UserRepository
 }
 
-var _ UserAppInterface = &UserApp{}
+var Mine UserAppInterface = &UserApp{}
 
 type UserAppInterface interface {
 	SaveUser(*entity.User) (*entity.User, map[string]string)
@@ -19,17 +20,21 @@ type UserAppInterface interface {
 }
 
 func (u *UserApp) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	return u.SaveUser(user)
+	fmt.Println("We Entered the user app")
+	return u.us.SaveUser(user)
 }
 
 func (u *UserApp) GetUser(userId uint64) (*entity.User, error) {
-	return u.GetUser(userId)
+	fmt.Println("We Entered the user app")
+	return u.us.GetUser(userId)
 }
 
 func (u *UserApp) GetUsers() ([]entity.User, error) {
-	return u.GetUsers()
+	fmt.Println("We Entered the user app")
+	return u.us.GetUsers()
 }
 
 func (u *UserApp) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
-	return u.GetUserByEmailAndPassword(user)
+	fmt.Println("We Entered the user app")
+	return u.us.GetUserByEmailAndPassword(user)
 }
