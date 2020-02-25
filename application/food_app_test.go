@@ -2,7 +2,7 @@ package application
 
 import (
 	"food-app/domain/entity"
-	"food-app/domain/infrastructure"
+	"food-app/domain/repository"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -35,8 +35,9 @@ func (f *fakeFoodRepo) DeleteFood(foodId uint64) error {
 	return deleteFoodRepo(foodId)
 }
 
+var fakeFood repository.FoodRepository = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
+
 func TestSaveFood_Success(t *testing.T) {
-	infrastructure.FoodRepo = &fakeFoodRepo{}  //this is where the real implementation is swapped with the fake
 	//Mock the response coming from the infrastructure
 	saveFoodRepo = func(user *entity.Food) (*entity.Food,  map[string]string) {
 		return &entity.Food{
@@ -52,7 +53,7 @@ func TestSaveFood_Success(t *testing.T) {
 		Description:  "food description",
 		UserID:     1,
 	}
-	f, err := FoodApp.SaveFood(food)
+	f, err := fakeFood.SaveFood(food)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title")
 	assert.EqualValues(t, f.Description, "food description")
@@ -60,7 +61,6 @@ func TestSaveFood_Success(t *testing.T) {
 }
 
 func TestGetFood_Success(t *testing.T) {
-	infrastructure.FoodRepo = &fakeFoodRepo{} //this is where the real implementation is swapped with the fake
 	//Mock the response coming from the infrastructure
 	getFoodRepo = func(foodId uint64) (*entity.Food,  error) {
 		return &entity.Food{
@@ -71,7 +71,7 @@ func TestGetFood_Success(t *testing.T) {
 		}, nil
 	}
 	foodId := uint64(1)
-	f, err := FoodApp.GetFood(foodId)
+	f, err := fakeFood.GetFood(foodId)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title")
 	assert.EqualValues(t, f.Description, "food description")
@@ -79,7 +79,6 @@ func TestGetFood_Success(t *testing.T) {
 }
 
 func TestAllFood_Success(t *testing.T) {
-	infrastructure.FoodRepo = &fakeFoodRepo{} //this is where the real implementation is swapped with the fake
 	//Mock the response coming from the infrastructure
 	getAllFoodRepo = func() ([]entity.Food,  error) {
 		return []entity.Food{
@@ -98,13 +97,12 @@ func TestAllFood_Success(t *testing.T) {
 
 		}, nil
 	}
-	f, err := FoodApp.GetAllFood()
+	f, err := fakeFood.GetAllFood()
 	assert.Nil(t, err)
 	assert.EqualValues(t, len(f), 2)
 }
 
 func TestUpdateFood_Success(t *testing.T) {
-	infrastructure.FoodRepo = &fakeFoodRepo{} //this is where the real implementation is swapped with the fake
 	//Mock the response coming from the infrastructure
 	updateFoodRepo = func(user *entity.Food) (*entity.Food,  map[string]string) {
 		return &entity.Food{
@@ -120,7 +118,7 @@ func TestUpdateFood_Success(t *testing.T) {
 		Description:  "food description update",
 		UserID:     1,
 	}
-	f, err := FoodApp.UpdateFood(food)
+	f, err := fakeFood.UpdateFood(food)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title update")
 	assert.EqualValues(t, f.Description, "food description update")
@@ -128,12 +126,11 @@ func TestUpdateFood_Success(t *testing.T) {
 }
 
 func TestDeleteFood_Success(t *testing.T) {
-	infrastructure.FoodRepo = &fakeFoodRepo{} //this is where the real implementation is swapped with the fake
 	//Mock the response coming from the infrastructure
 	deleteFoodRepo = func(foodId uint64) error {
 		return nil
 	}
 	foodId := uint64(1)
-	err := FoodApp.DeleteFood(foodId)
+	err := fakeFood.DeleteFood(foodId)
 	assert.Nil(t, err)
 }

@@ -10,13 +10,13 @@ import (
 
 )
 
-type Services struct {
+type Repositories struct {
 	User repository.UserRepository
 	Food    repository.FoodRepository
 	db      *gorm.DB
 }
 
-func NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*Services, error) {
+func NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*Repositories, error) {
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
 	db, err := gorm.Open(Dbdriver, DBURL)
 	if err != nil {
@@ -24,15 +24,15 @@ func NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*
 	}
 	db.LogMode(true)
 
-	return &Services{
-		User:    NewUserService(db),
-		Food:    NewFoodService(db),
+	return &Repositories{
+		User:    NewUserRepository(db),
+		Food:    NewFoodRepository(db),
 		db:      db,
 	}, nil
 }
 
 //closes the  database connection
-func (s *Services) Close() error {
+func (s *Repositories) Close() error {
 	return s.db.Close()
 }
 
@@ -45,6 +45,6 @@ func (s *Services) Close() error {
 //}
 
 //This migrate all tables
-func (s *Services) Automigrate() error {
+func (s *Repositories) Automigrate() error {
 	return s.db.AutoMigrate(&entity.User{}, &entity.Food{}).Error
 }

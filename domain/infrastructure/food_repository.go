@@ -9,9 +9,9 @@ import (
 	"strings"
 )
 
-func NewFoodService(db *gorm.DB) repository.FoodRepository {
-	return &foodRepository{db}
-}
+//func NewFoodService(db *gorm.DB) repository.FoodRepository {
+//	return &foodRepository{db}
+//}
 
 type foodRepository struct {
 	db *gorm.DB

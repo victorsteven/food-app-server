@@ -11,9 +11,9 @@ import (
 )
 
 
-func NewUserService(db *gorm.DB) repository.UserRepository {
-	return &userRepository{db}
-}
+//func NewUserService(db *gorm.DB) repository.UserRepository {
+//	return &userRepository{db}
+//}
 
 type userRepository struct {
 	db *gorm.DB

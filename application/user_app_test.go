@@ -2,7 +2,7 @@ package application
 
 import (
 	"food-app/domain/entity"
-	"food-app/domain/infrastructure"
+	"food-app/domain/repository"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -30,9 +30,10 @@ func (u *fakeUserRepo) GetUsers() ([]entity.User, error) {
 func (u *fakeUserRepo) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
 	return getUserEmailAndPasswordRepo(user)
 }
+var fakeUser repository.UserRepository = &fakeUserRepo{} //this is where the real implementation is swap with our fake implementation
 
 func TestSaveUser_Success(t *testing.T) {
-	infrastructure.UserRepo = &fakeUserRepo{} //swap the real method with the fake
+
 	//Mock the response coming from the infrastructure
 	saveUserRepo = func(user *entity.User) (*entity.User,  map[string]string) {
 		return &entity.User{
@@ -50,7 +51,7 @@ func TestSaveUser_Success(t *testing.T) {
 		Email:     "steven@example.com",
 		Password:  "password",
 	}
-	u, err := UserApp.SaveUser(user)
+	u, err := fakeUser.SaveUser(user)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u.FirstName, "victor")
 	assert.EqualValues(t, u.LastName, "steven")
@@ -58,7 +59,6 @@ func TestSaveUser_Success(t *testing.T) {
 }
 
 func TestGetUser_Success(t *testing.T) {
-	infrastructure.UserRepo = &fakeUserRepo{} //swap the real method with the fake
 	//Mock the response coming from the infrastructure
 	getUserRepo = func(userId uint64) (*entity.User,  error) {
 		return &entity.User{
@@ -70,7 +70,7 @@ func TestGetUser_Success(t *testing.T) {
 		}, nil
 	}
 	userId := uint64(1)
-	u, err := UserApp.GetUser(userId)
+	u, err := fakeUser.GetUser(userId)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u.FirstName, "victor")
 	assert.EqualValues(t, u.LastName, "steven")
@@ -78,7 +78,6 @@ func TestGetUser_Success(t *testing.T) {
 }
 
 func TestGetUsers_Success(t *testing.T) {
-	infrastructure.UserRepo = &fakeUserRepo{} //swap the real method with the fake
 	//Mock the response coming from the infrastructure
 	getUsersRepo = func() ([]entity.User, error) {
 		return []entity.User{
@@ -98,13 +97,12 @@ func TestGetUsers_Success(t *testing.T) {
 			},
 		}, nil
 	}
-	users, err := UserApp.GetUsers()
+	users, err := fakeUser.GetUsers()
 	assert.Nil(t, err)
 	assert.EqualValues(t, len(users), 2)
 }
 
 func TestGetUserByEmailAndPassword_Success(t *testing.T) {
-	infrastructure.UserRepo = &fakeUserRepo{} //swap the real method with the fake
 	//Mock the response coming from the infrastructure
 	getUserEmailAndPasswordRepo = func(user *entity.User) (*entity.User,  map[string]string) {
 		return &entity.User{
@@ -122,7 +120,7 @@ func TestGetUserByEmailAndPassword_Success(t *testing.T) {
 		Email:     "steven@example.com",
 		Password:  "password",
 	}
-	u, err := UserApp.GetUserByEmailAndPassword(user)
+	u, err := fakeUser.GetUserByEmailAndPassword(user)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u.FirstName, "victor")
 	assert.EqualValues(t, u.LastName, "steven")
