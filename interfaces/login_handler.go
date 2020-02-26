@@ -13,55 +13,24 @@ import (
 )
 
 type Authenticate struct {
-	us   application.UserAppInterface
-	rd   auth.AuthInterface
-	tk   auth.TokenInterface
-	sign SigninInterface
+	us application.UserAppInterface
+	rd auth.AuthInterface
+	tk auth.TokenInterface
 }
 
 //Authenticate constructor
-func NewAuthenticate(uApp application.UserAppInterface, rd auth.AuthInterface, tk auth.TokenInterface, si SigninInterface) *Authenticate {
+func NewAuthenticate(uApp application.UserAppInterface, rd auth.AuthInterface, tk auth.TokenInterface) *Authenticate {
 	return &Authenticate{
-		us:   uApp,
-		rd:   rd,
-		tk:   tk,
-		sign: si,
+		us: uApp,
+		rd: rd,
+		tk: tk,
 	}
-}
-
-type SigninInterface interface {
-	SignIn(*entity.User) (map[string]interface{}, map[string]string)
-}
-var _ SigninInterface = &Authenticate{}
-
-func (au *Authenticate) SignIn(user *entity.User) (map[string]interface{}, map[string]string) {
-	var tokenErr = map[string]string{}
-	//check if the user details are correct:
-	u, err := au.us.GetUserByEmailAndPassword(user)
-	if err != nil {
-		return nil, err
-	}
-	ts, tErr := au.tk.CreateToken(u.ID)
-	if tErr != nil {
-		tokenErr["token_error"] = tErr.Error()
-		return nil, err
-	}
-	saveErr := au.rd.CreateAuth(u.ID, ts)
-	if saveErr != nil {
-		return nil, err
-	}
-	userData := make(map[string]interface{})
-	userData["access_token"] = ts.AccessToken
-	userData["refresh_token"] = ts.RefreshToken
-	userData["id"] = u.ID
-	userData["first_name"] = u.FirstName
-	userData["last_name"] = u.LastName
-
-	return userData, nil
 }
 
 func (au *Authenticate) Login(c *gin.Context) {
 	var user *entity.User
+	var tokenErr = map[string]string{}
+
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
 		return
@@ -72,11 +41,29 @@ func (au *Authenticate) Login(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateUser)
 		return
 	}
-	userData, err := au.sign.SignIn(user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+	u, userErr := au.us.GetUserByEmailAndPassword(user)
+	if userErr != nil {
+		c.JSON(http.StatusInternalServerError, userErr)
 		return
 	}
+	ts, tErr := au.tk.CreateToken(u.ID)
+	if tErr != nil {
+		tokenErr["token_error"] = tErr.Error()
+		c.JSON(http.StatusUnprocessableEntity, tErr.Error())
+		return
+	}
+	saveErr := au.rd.CreateAuth(u.ID, ts)
+	if saveErr != nil {
+		c.JSON(http.StatusInternalServerError, saveErr.Error())
+		return
+	}
+	userData := make(map[string]interface{})
+	userData["access_token"] = ts.AccessToken
+	userData["refresh_token"] = ts.RefreshToken
+	userData["id"] = u.ID
+	userData["first_name"] = u.FirstName
+	userData["last_name"] = u.LastName
+
 	c.JSON(http.StatusOK, userData)
 }
 
@@ -97,7 +84,7 @@ func (au *Authenticate) Logout(c *gin.Context) {
 }
 
 //Refresh is the function that uses the refresh_token to generate new pairs of refresh and access tokens.
-func (s *Users) Refresh(c *gin.Context) {
+func (au *Authenticate) Refresh(c *gin.Context) {
 	mapToken := map[string]string{}
 	if err := c.ShouldBindJSON(&mapToken); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err.Error())
@@ -137,19 +124,19 @@ func (s *Users) Refresh(c *gin.Context) {
 			return
 		}
 		//Delete the previous Refresh Token
-		delErr := s.rd.DeleteRefresh(refreshUuid)
+		delErr := au.rd.DeleteRefresh(refreshUuid)
 		if delErr != nil { //if any goes wrong
 			c.JSON(http.StatusUnauthorized, "unauthorized")
 			return
 		}
 		//Create new pairs of refresh and access tokens
-		ts, createErr := s.tk.CreateToken(userId)
+		ts, createErr := au.tk.CreateToken(userId)
 		if createErr != nil {
 			c.JSON(http.StatusForbidden, createErr.Error())
 			return
 		}
 		//save the tokens metadata to redis
-		saveErr := s.rd.CreateAuth(userId, ts)
+		saveErr := au.rd.CreateAuth(userId, ts)
 		if saveErr != nil {
 			c.JSON(http.StatusForbidden, saveErr.Error())
 			return

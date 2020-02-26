@@ -14,8 +14,11 @@ import (
 	"strings"
 )
 
-type fileUpload struct {
+func NewFileUpload() *fileUpload {
+	return &fileUpload{}
 }
+
+type fileUpload struct{}
 
 type UploadFileInterface interface {
 	UploadFile(file *multipart.FileHeader) (string, error)

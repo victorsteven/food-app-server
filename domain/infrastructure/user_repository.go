@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"errors"
-	"fmt"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 	"food-app/utils/security"
@@ -24,8 +23,6 @@ func NewUserRepository(db *gorm.DB) repository.UserRepository {
 }
 
 func (r *userRepository) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	fmt.Println("NOT TOUCHED")
-	//db := rdbms.NewDB()
 	dbErr := map[string]string{}
 	err := r.db.Debug().Create(&user).Error
 	if err != nil {

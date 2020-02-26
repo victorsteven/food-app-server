@@ -1,7 +1,6 @@
 package interfaces
 
 import (
-	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/auth"
@@ -39,7 +38,6 @@ func (s *Users) SaveUser(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateErr)
 		return
 	}
-	fmt.Println("BEFORE THINGS WENT BAD")
 	newUser, err := s.us.SaveUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)

@@ -2,7 +2,6 @@ package infrastructure
 
 import (
 	"fmt"
-	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
@@ -42,10 +41,14 @@ func LocalDatabase() (*gorm.DB, error) {
 	dbname := os.Getenv("TEST_DB_NAME")
 	port := os.Getenv("TEST_DB_PORT")
 
-	conn, err := rdbms.NewDBConnection(dbdriver, user, password, port, host, dbname)
+	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", host, port, user, dbname, password)
+	conn, err := gorm.Open(dbdriver, DBURL)
 	if err != nil {
 		return nil, err
+	} else {
+		log.Println("CONNECTED TO: ", dbdriver)
 	}
+
 	err = conn.DropTableIfExists(&entity.User{}, &entity.Food{}).Error
 	if err != nil {
 		return nil, err

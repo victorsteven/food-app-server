@@ -16,42 +16,6 @@ import (
 
 //IF YOU HAVE TIME, YOU CAN TEST ALL FAILURE CASES TO IMPROVE COVERAGE
 
-
-func TestSignin_Success(t *testing.T) {
-
-	userApp.GetUserByEmailAndPasswordFn = func(*entity.User) (*entity.User, map[string]string) {
-		return &entity.User{
-			ID:        1,
-			FirstName: "victor",
-			LastName:  "steven",
-		}, nil
-	}
-	fakeToken.CreateTokenFn = func(userid uint64) (*auth.TokenDetails, error) {
-		return &auth.TokenDetails{
-			AccessToken:  "this-is-the-access-token",
-			RefreshToken: "this-is-the-refresh-token",
-			TokenUuid:    "dfsdf-342-34-23-4234-234",
-			RefreshUuid:  "sfd-3234-sdfew-34234-df3",
-			AtExpires:    12345,
-			RtExpires:    1234555,
-		}, nil
-	}
-	fakeAuth.CreateAuthFn = func(uint64, *auth.TokenDetails) error {
-		return nil
-	}
-
-	user := &entity.User{
-		FirstName: "victor",
-		LastName:  "steven",
-	}
-	details, err := au.SignIn(user)
-	assert.Nil(t, err)
-	assert.EqualValues(t, details["access_token"], "this-is-the-access-token")
-	assert.EqualValues(t, details["refresh_token"], "this-is-the-refresh-token")
-	assert.EqualValues(t, details["first_name"], "victor")
-	assert.EqualValues(t, details["last_name"], "steven")
-}
-
 //We dont need to mock the application layer, because we won't get there. So we will use table test to cover all validation errors
 func Test_Login_Invalid_Data(t *testing.T) {
 	samples := []struct {
@@ -107,17 +71,28 @@ func Test_Login_Invalid_Data(t *testing.T) {
 }
 
 func Test_Login_Success(t *testing.T) {
-	//Mock the signin method and return the response:
-	//Sign = &fakeSignin{} //this where the swap happens
-	fakeSignin.SignInFn = func(user *entity.User) (map[string]interface{}, map[string]string) {
-		return map[string]interface{}{
-			"access_token":  "this-is-the-access-token",
-			"refresh_token": "this-is-the-refresh-token",
-			"first_name":    "victor",
-			"last_name":     "steven",
-			"user_id":       1,
+
+	userApp.GetUserByEmailAndPasswordFn = func(*entity.User) (*entity.User, map[string]string) {
+		return &entity.User{
+			ID:        1,
+			FirstName: "victor",
+			LastName:  "steven",
 		}, nil
 	}
+	fakeToken.CreateTokenFn = func(userid uint64) (*auth.TokenDetails, error) {
+		return &auth.TokenDetails{
+			AccessToken:  "this-is-the-access-token",
+			RefreshToken: "this-is-the-refresh-token",
+			TokenUuid:    "dfsdf-342-34-23-4234-234",
+			RefreshUuid:  "sfd-3234-sdfew-34234-df3",
+			AtExpires:    12345,
+			RtExpires:    1234555,
+		}, nil
+	}
+	fakeAuth.CreateAuthFn = func(uint64, *auth.TokenDetails) error {
+		return nil
+	}
+
 	inputJSON := `{"email": "steven@example.com","password": "password"}`
 	r := gin.Default()
 	r.POST("/login", au.Login)
@@ -127,6 +102,8 @@ func Test_Login_Success(t *testing.T) {
 	}
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
+
+	fmt.Println("The response: ", string(rr.Body.Bytes()))
 
 	response := make(map[string]interface{})
 
@@ -139,7 +116,6 @@ func Test_Login_Success(t *testing.T) {
 	assert.EqualValues(t, response["refresh_token"], "this-is-the-refresh-token")
 	assert.EqualValues(t, response["first_name"], "victor")
 	assert.EqualValues(t, response["last_name"], "steven")
-	assert.EqualValues(t, response["user_id"], 1)
 }
 
 func TestLogout_Success(t *testing.T) {
@@ -198,7 +174,7 @@ func TestRefresh_Success(t *testing.T) {
 	}
 
 	r := gin.Default()
-	r.POST("/refresh", s.Refresh)
+	r.POST("/refresh", au.Refresh)
 
 	//Note that since we will be cheking this token, A secret is needed. THis secret was used to create the token,
 	//lets set it, so that this test can retrieve it. Setting it this way we save us from importing the .env, which we dont really need.

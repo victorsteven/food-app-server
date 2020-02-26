@@ -4,22 +4,12 @@ import (
 	"food-app/domain/infrastructure"
 	"food-app/interfaces"
 	"food-app/utils/auth"
+	"food-app/utils/fileupload"
+	"food-app/utils/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"log"
-)
-
-const (
-	Dbdriver   = "postgres"
-	DbHost     = "127.0.0.1"
-	DbPort     = "5432"
-	DbName     = "food-app"
-	DbPassword = "password"
-	DbUser     = "steven"
-
-	redis_host     = "127.0.0.1"
-	redis_port     = "6379"
-	redis_password = ""
+	"os"
 )
 
 func init() {
@@ -30,7 +20,21 @@ func init() {
 }
 
 func main() {
-	services, err := infrastructure.NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName)
+
+	dbdriver := os.Getenv("DB_DRIVER")
+	host := os.Getenv("DB_HOST")
+	password := os.Getenv("DB_PASSWORD")
+	user := os.Getenv("DB_USER")
+	dbname := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+
+	//redis details
+	redis_host := os.Getenv("REDIS_HOST")
+	redis_port := os.Getenv("REDIS_PORT")
+	redis_password := os.Getenv("REDIS_PASSWORD")
+
+
+	services, err := infrastructure.NewServices(dbdriver, user, password, port, host, dbname)
 	if err != nil {
 		panic(err)
 	}
@@ -42,27 +46,38 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := gin.Default()
-
 	tk := auth.NewToken()
+	fd := fileupload.NewFileUpload()
 
 	users := interfaces.NewUsers(services.User, redisService.Auth, tk)
-	foods := interfaces.NewFood(services.Food, services.User, redisService.Auth, tk)
+	foods := interfaces.NewFood(services.Food, services.User, fd, redisService.Auth, tk)
+	authenticate := interfaces.NewAuthenticate(services.User, redisService.Auth, tk)
 
+	r := gin.Default()
+	r.Use(middleware.CORSMiddleware()) //For CORS
+
+	//user routes
 	r.POST("/users", users.SaveUser)
 	r.GET("/users", users.GetUsers)
 	r.GET("/users/:user_id", users.GetUser)
 
-	r.POST("/food", foods.SaveFood)
-	r.POST("/food/:food_id", foods.UpdateFood)
+	//post routes
+	r.POST("/food", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), foods.SaveFood)
+	r.PUT("/food/:food_id", middleware.AuthMiddleware(), middleware.MaxSizeAllowed(8192000), foods.UpdateFood)
 	r.GET("/food/:food_id", foods.GetFoodAndCreator)
-	r.DELETE("/food/:food_id", foods.DeleteFood)
+	r.DELETE("/food/:food_id", middleware.AuthMiddleware(), foods.DeleteFood)
 	r.GET("/food", foods.GetAllFood)
 
-	r.POST("/login", users.Login)
-	r.POST("/logout", users.Logout)
-	r.POST("/refresh", users.Refresh)
+	//authentication routes
+	r.POST("/login", authenticate.Login)
+	r.POST("/logout", authenticate.Logout)
+	r.POST("/refresh", authenticate.Refresh)
 
-	r.Run(":8888")
 
+	//Starting the application
+	app_port := os.Getenv("PORT") //using heroku host
+	if app_port == "" {
+		app_port = "8888" //localhost
+	}
+	log.Fatal(r.Run(":"+app_port))
 }

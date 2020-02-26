@@ -14,18 +14,22 @@ type UserAppInterface struct {
 	GetUserFn                   func(uint64) (*entity.User, error)
 	GetUserByEmailAndPasswordFn func(*entity.User) (*entity.User, map[string]string)
 }
+
 //SaveUser calls the SaveUserFn
 func (u *UserAppInterface) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	return u.SaveUserFn(user)
 }
+
 //GetUsersFn calls the GetUsers
 func (u *UserAppInterface) GetUsers() ([]entity.User, error) {
 	return u.GetUsersFn()
 }
+
 //GetUserFn calls the GetUser
 func (u *UserAppInterface) GetUser(userId uint64) (*entity.User, error) {
 	return u.GetUserFn(userId)
 }
+
 //GetUserByEmailAndPasswordFn calls the GetUserByEmailAndPassword
 func (u *UserAppInterface) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
 	return u.GetUserByEmailAndPasswordFn(user)
@@ -39,6 +43,7 @@ type FoodAppInterface struct {
 	UpdateFoodFn func(*entity.Food) (*entity.Food, map[string]string)
 	DeleteFoodFn func(uint64) error
 }
+
 func (f *FoodAppInterface) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
 	return f.SaveFoodFn(food)
 }
@@ -62,6 +67,7 @@ type AuthInterface struct {
 	DeleteRefreshFn func(string) error
 	DeleteTokensFn  func(*auth.AccessDetails) error
 }
+
 func (f *AuthInterface) DeleteRefresh(refreshUuid string) error {
 	return f.DeleteRefreshFn(refreshUuid)
 }
@@ -75,29 +81,24 @@ func (f *AuthInterface) CreateAuth(userId uint64, authD *auth.TokenDetails) erro
 	return f.CreateAuthFn(userId, authD)
 }
 
-
 //TokenInterface is a mock token interface
 type TokenInterface struct {
 	CreateTokenFn          func(userId uint64) (*auth.TokenDetails, error)
 	ExtractTokenMetadataFn func(*http.Request) (*auth.AccessDetails, error)
 }
+
 func (f *TokenInterface) CreateToken(userid uint64) (*auth.TokenDetails, error) {
 	return f.CreateTokenFn(userid)
 }
 func (f *TokenInterface) ExtractTokenMetadata(r *http.Request) (*auth.AccessDetails, error) {
 	return f.ExtractTokenMetadataFn(r)
 }
+
 type UploadFileInterface struct {
 	UploadFileFn func(file *multipart.FileHeader) (string, error)
 }
+
 func (up *UploadFileInterface) UploadFile(file *multipart.FileHeader) (string, error) {
 	return up.UploadFileFn(file)
 }
 
-//SigninInterface is a mock sigin interface
-type SigninInterface struct {
-	SignInFn func(*entity.User) (map[string]interface{}, map[string]string)
-}
-func (si *SigninInterface) SignIn(user *entity.User) (map[string]interface{}, map[string]string) {
-	return si.SignInFn(user)
-}
