@@ -13,75 +13,19 @@ import (
 	"testing"
 )
 
-
-const (
-	Dbdriver = "postgres"
-	DbHost     = "127.0.0.1"
-	DbPort     = "5432"
-	DbName   = "food-app"
-	DbPassword = "password"
-	DbUser     = "steven"
-
-	redis_host = "127.0.0.1"
-	redis_port = "6379"
-	redis_password = ""
-)
-
-var users = &Users{}
-
-
-func TestMain(m *testing.M) {
-
-	//if err := godotenv.Load(os.ExpandEnv("./../.env")); err != nil {
-	//	log.Println("no env gotten")
-	//}
-	//
-	//services, err := infrastructure.NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer services.Close()
-	//services.Automigrate()
-
-
-	//redisService, err := auth.NewRedisDB(redis_host, redis_port, redis_password)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//tk  := auth.NewToken()
-	//
-	//users = NewUsers( tk)
-	//os.Exit(m.Run())
-}
-
-//type fakeUsers struct {
-//	us application.UserAppInterface
-//	rd auth.AuthInterface
-//	tk auth.TokenInterface
-//}
-//var faker = fakeUsers{}
-//var users = NewUsers(faker.us, faker.rd, faker.tk)
-
-//var userHandler UserHandlerInterface = &fakeUserApp{} //this is where the real implementation is swap with our fake implementation
-
-
-
-//var users UserHandlerInterface = &fakeUserApp{}
-
-//var foodApp FoodAppInterface = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
-
 //IF YOU HAVE TIME, YOU CAN TEST ALL FAILURE CASES TO IMPROVE COVERAGE
 
 func TestSaveUser_Success(t *testing.T) {
-	saveUserApp = func(*entity.User) (*entity.User, map[string]string) {
+	userApp.SaveUserFn = func(*entity.User) (*entity.User, map[string]string) {
 		return &entity.User{
 			ID:        1,
 			FirstName: "victor",
 			LastName:  "steven",
 		}, nil
 	}
+
 	r := gin.Default()
-	r.POST("/users", users.SaveUser)
+	r.POST("/users", s.SaveUser)
 	inputJSON := `{
 		"first_name": "victor",
 		"last_name": "steven",
@@ -133,7 +77,7 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 		},
 		{
 			//When instead a string an integer is supplied, When attempting to unmarshal input to the user struct, it will fail
-			inputJSON: `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`,
+			inputJSON:  `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`,
 			statusCode: 422,
 		},
 	}
@@ -141,7 +85,7 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 	for _, v := range samples {
 
 		r := gin.Default()
-		r.POST("/users", users.SaveUser)
+		r.POST("/users", s.SaveUser)
 		req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -182,13 +126,13 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 //One of such db error is invalid email, it return that from the application and test.
 func TestSaveUser_DB_Error(t *testing.T) {
 	//application.UserApp = &fakeUserApp{}
-	saveUserApp = func(*entity.User) (*entity.User, map[string]string) {
+	userApp.SaveUserFn = func(*entity.User) (*entity.User, map[string]string) {
 		return nil, map[string]string{
 			"email_taken": "email already taken",
 		}
 	}
 	r := gin.Default()
-	r.POST("/users", users.SaveUser)
+	r.POST("/users", s.SaveUser)
 	inputJSON := `{
 		"first_name": "victor",
 		"last_name": "steven",
@@ -210,16 +154,15 @@ func TestSaveUser_DB_Error(t *testing.T) {
 	assert.Equal(t, rr.Code, 500)
 	assert.EqualValues(t, dbErr["email_taken"], "email already taken")
 }
-////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////
 
 //GetUsers Test
 func TestGetUsers_Success(t *testing.T) {
-	//application.UserApp = &fakeUserApp{}
-	getUsersApp = func() ([]entity.User, error) {
+	userApp.GetUsersFn = func() ([]entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return []entity.User{
-			 {
+			{
 				ID:        1,
 				FirstName: "victor",
 				LastName:  "steven",
@@ -232,7 +175,7 @@ func TestGetUsers_Success(t *testing.T) {
 		}, nil
 	}
 	r := gin.Default()
-	r.GET("/users", users.GetUsers)
+	r.GET("/users", s.GetUsers)
 
 	req, err := http.NewRequest(http.MethodGet, "/users", nil)
 	if err != nil {
@@ -248,14 +191,13 @@ func TestGetUsers_Success(t *testing.T) {
 	assert.Equal(t, rr.Code, 200)
 	assert.EqualValues(t, len(users), 2)
 }
+
 ///////////////////////////////////////////////////////////////
-
-
 
 //GetUser Test
 func TestGetUser_Success(t *testing.T) {
 	//application.UserApp = &fakeUserApp{}
-	getUserApp = func(uint64) (*entity.User, error) {
+	userApp.GetUserFn = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -265,9 +207,9 @@ func TestGetUser_Success(t *testing.T) {
 	}
 	r := gin.Default()
 	userId := strconv.Itoa(1)
-	r.GET("/users/:user_id", users.GetUser)
+	r.GET("/users/:user_id", s.GetUser)
 
-	req, err := http.NewRequest(http.MethodGet, "/users/" + userId, nil)
+	req, err := http.NewRequest(http.MethodGet, "/users/"+userId, nil)
 	if err != nil {
 		t.Errorf("this is the error: %v\n", err)
 	}
@@ -282,4 +224,3 @@ func TestGetUser_Success(t *testing.T) {
 	assert.EqualValues(t, user.FirstName, "victor")
 	assert.EqualValues(t, user.LastName, "steven")
 }
-

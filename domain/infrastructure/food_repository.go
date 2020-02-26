@@ -93,7 +93,7 @@ func (r *foodRepository) DeleteFood(id uint64) error {
 	var food entity.Food
 	err := r.db.Debug().Where("id = ?", id).Delete(&food).Error
 	if err != nil {
-		return  errors.New("database error, please try again")
+		return errors.New("database error, please try again")
 	}
-	return  nil
+	return nil
 }

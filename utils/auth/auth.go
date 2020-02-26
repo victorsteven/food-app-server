@@ -19,9 +19,10 @@ type clientData struct {
 	client *redis.Client
 }
 type RedisService struct {
-	Auth AuthInterface
-	Client      *redis.Client
+	Auth   AuthInterface
+	Client *redis.Client
 }
+
 var _ AuthInterface = &clientData{}
 
 func NewAuth(client *redis.Client) AuthInterface {
@@ -35,20 +36,20 @@ func NewRedisDB(host, port, password string) (*RedisService, error) {
 		DB:       0,
 	})
 	return &RedisService{
-		Auth: NewAuth(redisClient),
-		Client:   redisClient,
+		Auth:   NewAuth(redisClient),
+		Client: redisClient,
 	}, nil
 }
 
 type AccessDetails struct {
 	TokenUuid string
-	UserId     uint64
+	UserId    uint64
 }
 
 type TokenDetails struct {
 	AccessToken  string
 	RefreshToken string
-	TokenUuid   string
+	TokenUuid    string
 	RefreshUuid  string
 	AtExpires    int64
 	RtExpires    int64
@@ -114,4 +115,3 @@ func (tk *clientData) DeleteRefresh(refreshUuid string) error {
 	}
 	return nil
 }
-

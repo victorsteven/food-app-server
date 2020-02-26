@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 )
+
 //
 func init() {
 	//To load our environmental variables.
@@ -55,10 +56,9 @@ func StartApp() {
 
 	//Route()
 
-
 	app_port := os.Getenv("PORT") //using heroku host
 	if app_port == "" {
 		app_port = "8888" //localhost
 	}
-	log.Fatal(router.Run(":"+app_port))
+	log.Fatal(router.Run(":" + app_port))
 }

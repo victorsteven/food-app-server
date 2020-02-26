@@ -9,13 +9,13 @@ import (
 //IF YOU HAVE TIME, YOU CAN TEST ALL THE METHODS FAILURES
 
 var (
-	saveUserRepo func(*entity.User) (*entity.User, map[string]string)
-	getUserRepo func(userId uint64) (*entity.User, error)
-	getUsersRepo func() ([]entity.User, error)
+	saveUserRepo                func(*entity.User) (*entity.User, map[string]string)
+	getUserRepo                 func(userId uint64) (*entity.User, error)
+	getUsersRepo                func() ([]entity.User, error)
 	getUserEmailAndPasswordRepo func(*entity.User) (*entity.User, map[string]string)
 )
 
-type fakeUserRepo struct {}
+type fakeUserRepo struct{}
 
 func (u *fakeUserRepo) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	return saveUserRepo(user)
@@ -32,10 +32,9 @@ func (u *fakeUserRepo) GetUserByEmailAndPassword(user *entity.User) (*entity.Use
 
 var userApp UserAppInterface = &fakeUserRepo{} //this is where the real implementation is swap with our fake implementation
 
-
 func TestSaveUser_Success(t *testing.T) {
 	//Mock the response coming from the infrastructure
-	saveUserRepo = func(user *entity.User) (*entity.User,  map[string]string) {
+	saveUserRepo = func(user *entity.User) (*entity.User, map[string]string) {
 		return &entity.User{
 			ID:        1,
 			FirstName: "victor",
@@ -60,7 +59,7 @@ func TestSaveUser_Success(t *testing.T) {
 
 func TestGetUser_Success(t *testing.T) {
 	//Mock the response coming from the infrastructure
-	getUserRepo = func(userId uint64) (*entity.User,  error) {
+	getUserRepo = func(userId uint64) (*entity.User, error) {
 		return &entity.User{
 			ID:        1,
 			FirstName: "victor",
@@ -104,7 +103,7 @@ func TestGetUsers_Success(t *testing.T) {
 
 func TestGetUserByEmailAndPassword_Success(t *testing.T) {
 	//Mock the response coming from the infrastructure
-	getUserEmailAndPasswordRepo = func(user *entity.User) (*entity.User,  map[string]string) {
+	getUserEmailAndPasswordRepo = func(user *entity.User) (*entity.User, map[string]string) {
 		return &entity.User{
 			ID:        1,
 			FirstName: "victor",

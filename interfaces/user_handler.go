@@ -15,6 +15,7 @@ type Users struct {
 	rd auth.AuthInterface
 	tk auth.TokenInterface
 }
+
 //Users constructor
 func NewUsers(us application.UserAppInterface, rd auth.AuthInterface, tk auth.TokenInterface) *Users {
 	return &Users{
@@ -58,7 +59,7 @@ func (s *Users) GetUsers(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, users.PublicUsers())
 }
-//
+
 func (s *Users) GetUser(c *gin.Context) {
 	userId, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {

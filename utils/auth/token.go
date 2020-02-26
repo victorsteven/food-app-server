@@ -20,7 +20,7 @@ type TokenInterface interface {
 	ExtractTokenMetadata(*http.Request) (*AccessDetails, error)
 }
 
-type Token struct {}
+type Token struct{}
 
 var _ TokenInterface = &Token{}
 
@@ -111,7 +111,7 @@ func (t *Token) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 		}
 		return &AccessDetails{
 			TokenUuid: accessUuid,
-			UserId:     userId,
+			UserId:    userId,
 		}, nil
 	}
 	return nil, err

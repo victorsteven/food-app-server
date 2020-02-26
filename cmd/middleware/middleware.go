@@ -47,8 +47,8 @@ func MaxSizeAllowed(n int64) gin.HandlerFunc {
 		if errRead != nil {
 			//c.JSON(http.StatusRequestEntityTooLarge,"too large")
 			c.JSON(http.StatusRequestEntityTooLarge, gin.H{
-				"status": http.StatusRequestEntityTooLarge,
-				"upload_err":  "too large: upload an image less than 8MB",
+				"status":     http.StatusRequestEntityTooLarge,
+				"upload_err": "too large: upload an image less than 8MB",
 			})
 			c.Abort()
 			return

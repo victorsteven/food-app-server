@@ -20,9 +20,9 @@ type User struct {
 }
 
 type PublicUser struct {
-	ID        uint64     `gorm:"primary_key;auto_increment" json:"id"`
-	FirstName string     `gorm:"size:100;not null;" json:"first_name"`
-	LastName  string     `gorm:"size:100;not null;" json:"last_name"`
+	ID        uint64 `gorm:"primary_key;auto_increment" json:"id"`
+	FirstName string `gorm:"size:100;not null;" json:"first_name"`
+	LastName  string `gorm:"size:100;not null;" json:"last_name"`
 }
 
 //BeforeSave is a gorm hook
@@ -36,6 +36,7 @@ func (u *User) BeforeSave() error {
 }
 
 type Users []User
+
 //So that we dont expose the user's email address and password to the world
 func (users Users) PublicUsers() []interface{} {
 	result := make([]interface{}, len(users))
@@ -122,5 +123,3 @@ func (u *User) Validate(action string) map[string]string {
 	}
 	return errorMessages
 }
-
-

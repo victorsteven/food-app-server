@@ -10,15 +10,15 @@ import (
 )
 
 const (
-	Dbdriver = "postgres"
+	Dbdriver   = "postgres"
 	DbHost     = "127.0.0.1"
 	DbPort     = "5432"
-	DbName   = "food-app"
+	DbName     = "food-app"
 	DbPassword = "password"
 	DbUser     = "steven"
 
-	redis_host = "127.0.0.1"
-	redis_port = "6379"
+	redis_host     = "127.0.0.1"
+	redis_port     = "6379"
 	redis_password = ""
 )
 
@@ -28,8 +28,6 @@ func init() {
 		log.Println("no env gotten")
 	}
 }
-
-
 
 func main() {
 	services, err := infrastructure.NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName)
@@ -46,7 +44,7 @@ func main() {
 
 	r := gin.Default()
 
-	tk  := auth.NewToken()
+	tk := auth.NewToken()
 
 	users := interfaces.NewUsers(services.User, redisService.Auth, tk)
 	foods := interfaces.NewFood(services.Food, services.User, redisService.Auth, tk)
@@ -65,8 +63,6 @@ func main() {
 	r.POST("/logout", users.Logout)
 	r.POST("/refresh", users.Refresh)
 
-
 	r.Run(":8888")
 
 }
-

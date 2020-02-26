@@ -7,5 +7,5 @@ type FoodRepository interface {
 	GetFood(uint64) (*entity.Food, error)
 	GetAllFood() ([]entity.Food, error)
 	UpdateFood(*entity.Food) (*entity.Food, map[string]string)
-	DeleteFood(uint64)  error
+	DeleteFood(uint64) error
 }

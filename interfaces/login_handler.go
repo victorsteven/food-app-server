@@ -2,7 +2,9 @@ package interfaces
 
 import (
 	"fmt"
+	"food-app/application"
 	"food-app/domain/entity"
+	"food-app/utils/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -10,44 +12,41 @@ import (
 	"strconv"
 )
 
-//func NewRedisAuth(rd auth.AuthInterface) *Users {
-//	return &Users{rd: rd}
-//}
+type Authenticate struct {
+	us   application.UserAppInterface
+	rd   auth.AuthInterface
+	tk   auth.TokenInterface
+	sign SigninInterface
+}
 
-//type Authenticate struct {
-//	us auth.
-//}
+//Authenticate constructor
+func NewAuthenticate(uApp application.UserAppInterface, rd auth.AuthInterface, tk auth.TokenInterface, si SigninInterface) *Authenticate {
+	return &Authenticate{
+		us:   uApp,
+		rd:   rd,
+		tk:   tk,
+		sign: si,
+	}
+}
 
-//func NewAuthenticate(us application.UserAppInterface) *Authenticate {
-//	return &Authenticate{us: us}
-//}
-//
+type SigninInterface interface {
+	SignIn(*entity.User) (map[string]interface{}, map[string]string)
+}
+var _ SigninInterface = &Authenticate{}
 
-
-//type signinInterface interface {
-//	SignIn(*entity.User) (map[string]interface{}, map[string]string)
-//}
-
-//var _ signinInterface = &Authenticate{}
-
-//type sign struct {}
-//var Sign signinInterface = &sign{} //The struct now implement the interface
-
-
-//We will need to mock this method when writing unit test, it is best we define it in an interface.
-func (s *Users) SignIn(user *entity.User) (map[string]interface{}, map[string]string){
+func (au *Authenticate) SignIn(user *entity.User) (map[string]interface{}, map[string]string) {
 	var tokenErr = map[string]string{}
 	//check if the user details are correct:
-	u, err := s.us.GetUserByEmailAndPassword(user)
+	u, err := au.us.GetUserByEmailAndPassword(user)
 	if err != nil {
 		return nil, err
 	}
-	ts, tErr := s.tk.CreateToken(u.ID)
+	ts, tErr := au.tk.CreateToken(u.ID)
 	if tErr != nil {
 		tokenErr["token_error"] = tErr.Error()
 		return nil, err
 	}
-	saveErr := s.rd.CreateAuth(u.ID, ts)
+	saveErr := au.rd.CreateAuth(u.ID, ts)
 	if saveErr != nil {
 		return nil, err
 	}
@@ -61,7 +60,7 @@ func (s *Users) SignIn(user *entity.User) (map[string]interface{}, map[string]st
 	return userData, nil
 }
 
-func (s *Users) Login(c *gin.Context) {
+func (au *Authenticate) Login(c *gin.Context) {
 	var user *entity.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
@@ -73,7 +72,7 @@ func (s *Users) Login(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateUser)
 		return
 	}
-	userData, err := s.SignIn(user)
+	userData, err := au.sign.SignIn(user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -81,22 +80,21 @@ func (s *Users) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, userData)
 }
 
-func (s *Users) Logout(c *gin.Context) {
+func (au *Authenticate) Logout(c *gin.Context) {
 	//check is the user is authenticated first
-	metadata, err := s.tk.ExtractTokenMetadata(c.Request)
+	metadata, err := au.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 	//if the access token exist and it is still valid, then delete both the access token and the refresh token
-	deleteErr := s.rd.DeleteTokens(metadata)
+	deleteErr := au.rd.DeleteTokens(metadata)
 	if deleteErr != nil {
 		c.JSON(http.StatusUnauthorized, deleteErr.Error())
 		return
 	}
 	c.JSON(http.StatusOK, "Successfully logged out")
 }
-
 
 //Refresh is the function that uses the refresh_token to generate new pairs of refresh and access tokens.
 func (s *Users) Refresh(c *gin.Context) {
@@ -139,14 +137,14 @@ func (s *Users) Refresh(c *gin.Context) {
 			return
 		}
 		//Delete the previous Refresh Token
-		 delErr := s.rd.DeleteRefresh(refreshUuid)
-		if delErr != nil  { //if any goes wrong
+		delErr := s.rd.DeleteRefresh(refreshUuid)
+		if delErr != nil { //if any goes wrong
 			c.JSON(http.StatusUnauthorized, "unauthorized")
 			return
 		}
 		//Create new pairs of refresh and access tokens
 		ts, createErr := s.tk.CreateToken(userId)
-		if  createErr != nil {
+		if createErr != nil {
 			c.JSON(http.StatusForbidden, createErr.Error())
 			return
 		}
@@ -165,4 +163,3 @@ func (s *Users) Refresh(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, "refresh token expired")
 	}
 }
-
