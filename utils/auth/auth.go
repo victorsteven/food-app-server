@@ -14,32 +14,16 @@ type AuthInterface interface {
 	DeleteRefresh(string) error
 	DeleteTokens(*AccessDetails) error
 }
+var _ AuthInterface = &clientData{}
 
 type clientData struct {
 	client *redis.Client
 }
-type RedisService struct {
-	Auth   AuthInterface
-	Client *redis.Client
-}
-
-var _ AuthInterface = &clientData{}
 
 func NewAuth(client *redis.Client) AuthInterface {
 	return &clientData{client: client}
 }
 
-func NewRedisDB(host, port, password string) (*RedisService, error) {
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     host + ":" + port,
-		Password: password,
-		DB:       0,
-	})
-	return &RedisService{
-		Auth:   NewAuth(redisClient),
-		Client: redisClient,
-	}, nil
-}
 
 type AccessDetails struct {
 	TokenUuid string
@@ -57,7 +41,6 @@ type TokenDetails struct {
 
 //Save token metadata to Redis
 func (tk *clientData) CreateAuth(userid uint64, td *TokenDetails) error {
-	fmt.Println("WE ENTERED CREATE AUTH")
 	at := time.Unix(td.AtExpires, 0) //converting Unix to UTC(to Time object)
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()
