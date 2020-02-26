@@ -1,14 +1,16 @@
 package application
 
 import (
+	"fmt"
 	"food-app/domain/entity"
-	"food-app/domain/infrastructure"
+	"food-app/domain/repository"
 )
 
-type userApp struct {
+type UserApp struct {
+	us repository.UserRepository
 }
 
-var UserApp UserAppInterface = &userApp{}
+var Mine UserAppInterface = &UserApp{}
 
 type UserAppInterface interface {
 	SaveUser(*entity.User) (*entity.User, map[string]string)
@@ -17,20 +19,22 @@ type UserAppInterface interface {
 	GetUserByEmailAndPassword(*entity.User) (*entity.User, map[string]string)
 }
 
-
-func (u *userApp) SaveUser(user *entity.User) (*entity.User, map[string]string) {
-	return infrastructure.UserRepo.SaveUser(user)
+func (u *UserApp) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+	fmt.Println("We Entered the user app")
+	return u.us.SaveUser(user)
 }
 
-func (u *userApp) GetUser(userId uint64) (*entity.User, error) {
-	return infrastructure.UserRepo.GetUser(userId)
+func (u *UserApp) GetUser(userId uint64) (*entity.User, error) {
+	fmt.Println("We Entered the user app")
+	return u.us.GetUser(userId)
 }
 
-func (u *userApp) GetUsers() ([]entity.User, error) {
-	return infrastructure.UserRepo.GetUsers()
+func (u *UserApp) GetUsers() ([]entity.User, error) {
+	fmt.Println("We Entered the user app")
+	return u.us.GetUsers()
 }
 
-func (u *userApp) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
-	return infrastructure.UserRepo.GetUserByEmailAndPassword(user)
+func (u *UserApp) GetUserByEmailAndPassword(user *entity.User) (*entity.User, map[string]string) {
+	fmt.Println("We Entered the user app")
+	return u.us.GetUserByEmailAndPassword(user)
 }
-

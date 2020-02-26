@@ -2,14 +2,16 @@ package infrastructure
 
 import (
 	"errors"
-	"food-app/database/rdbms"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres" //postgres database driver
 	"os"
 	"strings"
 )
+
+//func NewFoodService(db *gorm.DB) repository.FoodRepository {
+//	return &foodRepository{db}
+//}
 
 type foodRepository struct {
 	db *gorm.DB
@@ -20,15 +22,16 @@ func NewFoodRepository(db *gorm.DB) repository.FoodRepository {
 	return &foodRepository{db}
 }
 
-var FoodRepo repository.FoodRepository = &foodRepository{}
+//The foodRepository implements the repository.FoodRepository interface
+var _ repository.FoodRepository = &foodRepository{}
 
 func (r *foodRepository) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	dbErr := map[string]string{}
 	//The images are uploaded to digital ocean spaces. So we need to prepend the url. This might not be your use case, if you are not uploading image to Digital Ocean.
 	food.FoodImage = os.Getenv("DO_SPACES_URL") + food.FoodImage
 
-	err := db.Debug().Create(&food).Error
+	err := r.db.Debug().Create(&food).Error
 	if err != nil {
 		//since our title is unique
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
@@ -43,9 +46,9 @@ func (r *foodRepository) SaveFood(food *entity.Food) (*entity.Food, map[string]s
 }
 
 func (r *foodRepository) GetFood(id uint64) (*entity.Food, error) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	var food entity.Food
-	err := db.Debug().Where("id = ?", id).Take(&food).Error
+	err := r.db.Debug().Where("id = ?", id).Take(&food).Error
 	if err != nil {
 		return nil, errors.New("database error, please try again")
 	}
@@ -56,9 +59,9 @@ func (r *foodRepository) GetFood(id uint64) (*entity.Food, error) {
 }
 
 func (r *foodRepository) GetAllFood() ([]entity.Food, error) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	var foods []entity.Food
-	err := db.Debug().Limit(100).Order("created_at desc").Find(&foods).Error
+	err := r.db.Debug().Limit(100).Order("created_at desc").Find(&foods).Error
 	if err != nil {
 		return nil, err
 	}
@@ -69,9 +72,9 @@ func (r *foodRepository) GetAllFood() ([]entity.Food, error) {
 }
 
 func (r *foodRepository) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	dbErr := map[string]string{}
-	err := db.Debug().Save(&food).Error
+	err := r.db.Debug().Save(&food).Error
 	if err != nil {
 		//since our title is unique
 		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
@@ -86,11 +89,11 @@ func (r *foodRepository) UpdateFood(food *entity.Food) (*entity.Food, map[string
 }
 
 func (r *foodRepository) DeleteFood(id uint64) error {
-	db := rdbms.NewDB()
+	//db := rdbms.NewDB()
 	var food entity.Food
-	err := db.Debug().Where("id = ?", id).Delete(&food).Error
+	err := r.db.Debug().Where("id = ?", id).Delete(&food).Error
 	if err != nil {
-		return  errors.New("database error, please try again")
+		return errors.New("database error, please try again")
 	}
-	return  nil
+	return nil
 }

@@ -107,7 +107,7 @@ func TestGetUserByEmailAndPassword_Success(t *testing.T) {
 		t.Fatalf("want non error, got %#v", err)
 	}
 	var user = &entity.User{
-		Email:  "steven@example.com",
+		Email:    "steven@example.com",
 		Password: "password",
 	}
 	repo := NewUserRepository(conn)
@@ -118,5 +118,3 @@ func TestGetUserByEmailAndPassword_Success(t *testing.T) {
 	//Note, the user password from the database should not be equal to a plane password, because that one is hashed
 	assert.NotEqual(t, u.Password, user.Password)
 }
-
-

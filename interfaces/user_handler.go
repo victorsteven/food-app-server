@@ -3,12 +3,28 @@ package interfaces
 import (
 	"food-app/application"
 	"food-app/domain/entity"
+	"food-app/utils/auth"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 )
 
-func SaveUser(c *gin.Context) {
+type Users struct {
+	us application.UserAppInterface
+	rd auth.AuthInterface
+	tk auth.TokenInterface
+}
+
+//Users constructor
+func NewUsers(us application.UserAppInterface, rd auth.AuthInterface, tk auth.TokenInterface) *Users {
+	return &Users{
+		us: us,
+		rd: rd,
+		tk: tk,
+	}
+}
+
+func (s *Users) SaveUser(c *gin.Context) {
 	var user entity.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -22,32 +38,33 @@ func SaveUser(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, validateErr)
 		return
 	}
-	u, err := application.UserApp.SaveUser(&user)
+	newUser, err := s.us.SaveUser(&user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	c.JSON(http.StatusCreated, u.PublicUser())
+	c.JSON(http.StatusCreated, newUser.PublicUser())
 }
 
-func GetUsers(c *gin.Context) {
-	us := entity.Users{} //customize user
+func (s *Users) GetUsers(c *gin.Context) {
+	users := entity.Users{} //customize user
 	var err error
-	us, err = application.UserApp.GetUsers()
+	//us, err = application.UserApp.GetUsers()
+	users, err = s.us.GetUsers()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, us.PublicUsers())
+	c.JSON(http.StatusOK, users.PublicUsers())
 }
 
-func GetUser(c *gin.Context) {
+func (s *Users) GetUser(c *gin.Context) {
 	userId, err := strconv.ParseUint(c.Param("user_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	user, err := application.UserApp.GetUser(userId)
+	user, err := s.us.GetUser(userId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return

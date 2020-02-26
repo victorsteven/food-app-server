@@ -5,10 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"food-app/application"
 	"food-app/domain/entity"
 	"food-app/utils/auth"
-	"food-app/utils/fileupload"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"io"
@@ -23,19 +21,15 @@ import (
 //IF YOU HAVE TIME, YOU CAN TEST ALL FAILURE CASES TO IMPROVE COVERAGE
 
 func Test_SaveFood_Invalid_Data(t *testing.T) {
-
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+	fakeToken.ExtractTokenMetadataFn = func(r *http.Request) (*auth.AccessDetails, error) {
 		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
 	}
 	//Mocking the fetching of token metadata from redis
-	fetchAuth =  func(uuid string) (uint64, error){
+	fakeAuth.FetchAuthFn = func(uuid string) (uint64, error) {
 		return 1, nil
 	}
 	samples := []struct {
@@ -75,7 +69,7 @@ func Test_SaveFood_Invalid_Data(t *testing.T) {
 		tokenString := fmt.Sprintf("Bearer %v", token)
 
 		r := gin.Default()
-		r.POST("/food", SaveFood)
+		r.POST("/food", f.SaveFood)
 		req, err := http.NewRequest(http.MethodPost, "/food", bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -109,26 +103,20 @@ func Test_SaveFood_Invalid_Data(t *testing.T) {
 	}
 }
 
-
 func TestSaverFood_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
-	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+	fakeToken.ExtractTokenMetadataFn = func(r *http.Request) (*auth.AccessDetails, error) {
 		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
 	}
 	//Mocking the fetching of token metadata from redis
-	fetchAuth =  func(uuid string) (uint64, error){
+	fakeAuth.FetchAuthFn = func(uuid string) (uint64, error) {
 		return 1, nil
 	}
-	getUserApp = func(uint64) (*entity.User, error) {
+	userApp.GetUserFn = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -137,22 +125,21 @@ func TestSaverFood_Success(t *testing.T) {
 		}, nil
 	}
 	//Mocking file upload to DigitalOcean
-	uploadFile = func(file *multipart.FileHeader) (string, error) {
+	fakeUpload.UploadFileFn = func(file *multipart.FileHeader) (string, error) {
 		return "dbdbf-dhbfh-bfy34-34jh-fd.jpg", nil //this is fabricated
 	}
 	//Mocking The Food return from db
-	saveFoodApp = func(*entity.Food) (*entity.Food, map[string]string) {
+	foodApp.SaveFoodFn = func(*entity.Food) (*entity.Food, map[string]string) {
 		return &entity.Food{
-			ID:        1,
-			UserID:    1,
-			Title: "Food title",
-			Description:  "Food description",
-			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
-
+			ID:          1,
+			UserID:      1,
+			Title:       "Food title",
+			Description: "Food description",
+			FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
 		}, nil
 	}
-	f :=  "./../utils/test_images/amala.jpg" //this is where the image is located
-	file, err := os.Open(f)
+	image := "./../utils/test_images/amala.jpg" //this is where the image is located
+	file, err := os.Open(image)
 	if err != nil {
 		t.Errorf("Cannot open file: %s\n", err)
 	}
@@ -204,7 +191,7 @@ func TestSaverFood_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.POST("/food", SaveFood)
+	r.POST("/food", f.SaveFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -225,19 +212,13 @@ func TestSaverFood_Success(t *testing.T) {
 
 //When wrong token is provided
 func TestSaverFood_Unauthorized(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
-	fileupload.Uploader = &fakeUploader{}
-
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+	fakeToken.ExtractTokenMetadataFn = func(r *http.Request) (*auth.AccessDetails, error) {
 		return nil, errors.New("unauthorized")
 	}
 
-	f :=  "./../utils/test_images/amala.jpg" //this is where the image is located
-	file, err := os.Open(f)
+	image := "./../utils/test_images/amala.jpg" //this is where the image is located
+	file, err := os.Open(image)
 	if err != nil {
 		t.Errorf("Cannot open file: %s\n", err)
 	}
@@ -288,7 +269,7 @@ func TestSaverFood_Unauthorized(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.POST("/food", SaveFood)
+	r.POST("/food", f.SaveFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -304,24 +285,24 @@ func TestSaverFood_Unauthorized(t *testing.T) {
 }
 
 func TestGetAllFood_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
+	//application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
 
 	//Return Food to check for, with our mock
-	getAllFoodApp = func() ([]entity.Food, error) {
+	foodApp.GetAllFoodFn = func() ([]entity.Food, error) {
 		return []entity.Food{
 			{
-				ID:        1,
-				UserID:    1,
-				Title: "Food title",
-				Description:  "Food description",
-				FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
+				ID:          1,
+				UserID:      1,
+				Title:       "Food title",
+				Description: "Food description",
+				FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
 			},
 			{
-				ID:        2,
-				UserID:    2,
-				Title: "Food title second",
-				Description:  "Food description second",
-				FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd-second.jpg",
+				ID:          2,
+				UserID:      2,
+				Title:       "Food title second",
+				Description: "Food description second",
+				FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd-second.jpg",
 			},
 		}, nil
 	}
@@ -330,7 +311,7 @@ func TestGetAllFood_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.GET("/food", GetAllFood)
+	r.GET("/food", f.GetAllFood)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
@@ -343,12 +324,9 @@ func TestGetAllFood_Success(t *testing.T) {
 	assert.EqualValues(t, len(food), 2)
 }
 
-
 func TestGetFoodAndCreator_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	application.UserApp = &fakeUserApp{}
 
-	getUserApp = func(uint64) (*entity.User, error) {
+	userApp.GetUserFn = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -357,13 +335,13 @@ func TestGetFoodAndCreator_Success(t *testing.T) {
 		}, nil
 	}
 	//Return Food to check for, with our mock
-	getFoodApp = func(uint64) (*entity.Food, error) {
+	foodApp.GetFoodFn = func(uint64) (*entity.Food, error) {
 		return &entity.Food{
-			ID:        1,
-			UserID:    1,
-			Title: "Food title",
-			Description:  "Food description",
-			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
+			ID:          1,
+			UserID:      1,
+			Title:       "Food title",
+			Description: "Food description",
+			FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
 		}, nil
 	}
 	foodID := strconv.Itoa(1)
@@ -372,7 +350,7 @@ func TestGetFoodAndCreator_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.GET("/food/:food_id", GetFoodAndCreator)
+	r.GET("/food/:food_id", f.GetFoodAndCreator)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
 
@@ -394,26 +372,20 @@ func TestGetFoodAndCreator_Success(t *testing.T) {
 	assert.EqualValues(t, creator["last_name"], "steven")
 }
 
-
 func TestUpdateFood_Success_With_File(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
-	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+	fakeToken.ExtractTokenMetadataFn = func(r *http.Request) (*auth.AccessDetails, error) {
 		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
 	}
 	//Mocking the fetching of token metadata from redis
-	fetchAuth =  func(uuid string) (uint64, error){
+	fakeAuth.FetchAuthFn = func(uuid string) (uint64, error) {
 		return 1, nil
 	}
-	getUserApp = func(uint64) (*entity.User, error) {
+	userApp.GetUserFn = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -422,33 +394,33 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 		}, nil
 	}
 	//Return Food to check for, with our mock
-	getFoodApp = func(uint64) (*entity.Food, error) {
+	foodApp.GetFoodFn = func(uint64) (*entity.Food, error) {
 		return &entity.Food{
-			ID:        1,
-			UserID:    1,
-			Title: "Food title",
-			Description:  "Food description",
-			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
+			ID:          1,
+			UserID:      1,
+			Title:       "Food title",
+			Description: "Food description",
+			FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd.jpg",
 		}, nil
 	}
 	//Mocking The Food return from db
-	updateFoodApp = func(*entity.Food) (*entity.Food, map[string]string) {
+	foodApp.UpdateFoodFn = func(*entity.Food) (*entity.Food, map[string]string) {
 		return &entity.Food{
-			ID:        1,
-			UserID:    1,
-			Title: "Food title updated",
-			Description:  "Food description updated",
-			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd-updated.jpg",
+			ID:          1,
+			UserID:      1,
+			Title:       "Food title updated",
+			Description: "Food description updated",
+			FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd-updated.jpg",
 		}, nil
 	}
 
 	//Mocking file upload to DigitalOcean
-	uploadFile = func(file *multipart.FileHeader) (string, error) {
+	fakeUpload.UploadFileFn = func(file *multipart.FileHeader) (string, error) {
 		return "dbdbf-dhbfh-bfy34-34jh-fd-updated.jpg", nil //this is fabricated
 	}
 
-	f :=  "./../utils/test_images/new_meal.jpeg" //this is where the image is located
-	file, err := os.Open(f)
+	image := "./../utils/test_images/new_meal.jpeg" //this is where the image is located
+	file, err := os.Open(image)
 	if err != nil {
 		t.Errorf("Cannot open file: %s\n", err)
 	}
@@ -501,7 +473,7 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.PUT("/food/:food_id", UpdateFood)
+	r.PUT("/food/:food_id", f.UpdateFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -520,27 +492,21 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 	assert.EqualValues(t, food.FoodImage, "dbdbf-dhbfh-bfy34-34jh-fd-updated.jpg")
 }
 
-
 //This is where file is not updated. A user can choose not to update file, in that case, the old file will still be used
 func TestUpdateFood_Success_Without_File(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
-	fileupload.Uploader = &fakeUploader{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+	fakeToken.ExtractTokenMetadataFn = func(r *http.Request) (*auth.AccessDetails, error) {
 		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
 	}
 	//Mocking the fetching of token metadata from redis
-	fetchAuth =  func(uuid string) (uint64, error){
+	fakeAuth.FetchAuthFn = func(uuid string) (uint64, error) {
 		return 1, nil
 	}
-	getUserApp = func(uint64) (*entity.User, error) {
+	userApp.GetUserFn = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -549,28 +515,28 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 		}, nil
 	}
 	//Return Food to check for, with our mock
-	getFoodApp = func(uint64) (*entity.Food, error) {
+	foodApp.GetFoodFn = func(uint64) (*entity.Food, error) {
 		return &entity.Food{
-			ID:        1,
-			UserID:    1,
-			Title: "Food title",
-			Description:  "Food description",
-			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
+			ID:          1,
+			UserID:      1,
+			Title:       "Food title",
+			Description: "Food description",
+			FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
 		}, nil
 	}
 	//Mocking The Food return from db
-	updateFoodApp = func(*entity.Food) (*entity.Food, map[string]string) {
+	foodApp.UpdateFoodFn = func(*entity.Food) (*entity.Food, map[string]string) {
 		return &entity.Food{
-			ID:        1,
-			UserID:    1,
-			Title: "Food title updated",
-			Description:  "Food description updated",
-			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
+			ID:          1,
+			UserID:      1,
+			Title:       "Food title updated",
+			Description: "Food description updated",
+			FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
 		}, nil
 	}
 
 	//Mocking file upload to DigitalOcean
-	uploadFile = func(file *multipart.FileHeader) (string, error) {
+	fakeUpload.UploadFileFn = func(file *multipart.FileHeader) (string, error) {
 		return "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg", nil //this is fabricated
 	}
 
@@ -611,7 +577,7 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.PUT("/food/:food_id", UpdateFood)
+	r.PUT("/food/:food_id", f.UpdateFood)
 	req.Header.Set("Authorization", tokenString)
 	req.Header.Set("Content-Type", multipartWriter.FormDataContentType()) //this is important
 	rr := httptest.NewRecorder()
@@ -630,20 +596,17 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 	assert.EqualValues(t, food.FoodImage, "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg")
 }
 
-
 func TestUpdateFood_Invalid_Data(t *testing.T) {
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
 
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+	fakeToken.ExtractTokenMetadataFn = func(r *http.Request) (*auth.AccessDetails, error) {
 		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
 	}
 	//Mocking the fetching of token metadata from redis
-	fetchAuth =  func(uuid string) (uint64, error){
+	fakeAuth.FetchAuthFn = func(uuid string) (uint64, error) {
 		return 1, nil
 	}
 
@@ -687,7 +650,7 @@ func TestUpdateFood_Invalid_Data(t *testing.T) {
 		foodID := strconv.Itoa(1)
 
 		r := gin.Default()
-		r.POST("/food/:food_id", UpdateFood)
+		r.POST("/food/:food_id", f.UpdateFood)
 		req, err := http.NewRequest(http.MethodPost, "/food/"+foodID, bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -704,7 +667,6 @@ func TestUpdateFood_Invalid_Data(t *testing.T) {
 			t.Errorf("error unmarshalling error %s\n", err)
 		}
 		assert.Equal(t, rr.Code, v.statusCode)
-
 
 		if validationErr["title_required"] != "" {
 			assert.Equal(t, validationErr["title_required"], "title is required")
@@ -723,33 +685,28 @@ func TestUpdateFood_Invalid_Data(t *testing.T) {
 }
 
 func TestDeleteFood_Success(t *testing.T) {
-	application.FoodApp = &fakeFoodApp{} //make it possible to change real method with fake
-	auth.Token = &fakeToken{}
-	auth.Auth = &fakeAuth{}
-	application.UserApp = &fakeUserApp{}
-
 	//Mock extracting metadata
-	tokenMetadata = func(r *http.Request) (*auth.AccessDetails, error){
+	fakeToken.ExtractTokenMetadataFn = func(r *http.Request) (*auth.AccessDetails, error) {
 		return &auth.AccessDetails{
 			TokenUuid: "0237817a-1546-4ca3-96a4-17621c237f6b",
 			UserId:    1,
 		}, nil
 	}
 	//Mocking the fetching of token metadata from redis
-	fetchAuth =  func(uuid string) (uint64, error){
+	fakeAuth.FetchAuthFn = func(uuid string) (uint64, error) {
 		return 1, nil
 	}
 	//Return Food to check for, with our mock
-	getFoodApp = func(uint64) (*entity.Food, error) {
+	foodApp.GetFoodFn = func(uint64) (*entity.Food, error) {
 		return &entity.Food{
-			ID:        1,
-			UserID:    1,
-			Title: "Food title",
-			Description:  "Food description",
-			FoodImage: "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
+			ID:          1,
+			UserID:      1,
+			Title:       "Food title",
+			Description: "Food description",
+			FoodImage:   "dbdbf-dhbfh-bfy34-34jh-fd-old-file.jpg",
 		}, nil
 	}
-	getUserApp = func(uint64) (*entity.User, error) {
+	userApp.GetUserFn = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -758,7 +715,7 @@ func TestDeleteFood_Success(t *testing.T) {
 		}, nil
 	}
 	//The deleted food mock:
-	deleteFoodApp = func(uint64) error {
+	foodApp.DeleteFoodFn = func(uint64) error {
 		return nil
 	}
 	//use a valid token that has not expired. This token was created to live forever, just for test purposes with the user id of 1. This is so that it can always be used to run tests
@@ -772,7 +729,7 @@ func TestDeleteFood_Success(t *testing.T) {
 		t.Errorf("this is the error: %v\n", err)
 	}
 	r := gin.Default()
-	r.DELETE("/food/:food_id", DeleteFood)
+	r.DELETE("/food/:food_id", f.DeleteFood)
 	req.Header.Set("Authorization", tokenString)
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
@@ -786,5 +743,3 @@ func TestDeleteFood_Success(t *testing.T) {
 	assert.Equal(t, rr.Code, 200)
 	assert.EqualValues(t, response, "food deleted")
 }
-
-

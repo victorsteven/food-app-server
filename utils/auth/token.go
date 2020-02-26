@@ -11,16 +11,20 @@ import (
 	"time"
 )
 
-type tokenInterface interface {
+func NewToken() *Token {
+	return &Token{}
+}
+
+type TokenInterface interface {
 	CreateToken(userid uint64) (*TokenDetails, error)
 	ExtractTokenMetadata(*http.Request) (*AccessDetails, error)
 }
 
-type token struct {}
+type Token struct{}
 
-var Token tokenInterface = &token{}
+var _ TokenInterface = &Token{}
 
-func (t *token) CreateToken(userid uint64) (*TokenDetails, error) {
+func (t *Token) CreateToken(userid uint64) (*TokenDetails, error) {
 	td := &TokenDetails{}
 	td.AtExpires = time.Now().Add(time.Minute * 60).Unix()
 	td.TokenUuid = uuid.NewV4().String()
@@ -89,7 +93,8 @@ func ExtractToken(r *http.Request) string {
 	return ""
 }
 
-func (t *token) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
+func (t *Token) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
+	fmt.Println("WE ENTERED METADATA")
 	token, err := VerifyToken(r)
 	if err != nil {
 		return nil, err
@@ -106,7 +111,7 @@ func (t *token) ExtractTokenMetadata(r *http.Request) (*AccessDetails, error) {
 		}
 		return &AccessDetails{
 			TokenUuid: accessUuid,
-			UserId:     userId,
+			UserId:    userId,
 		}, nil
 	}
 	return nil, err

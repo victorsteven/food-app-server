@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
-	"food-app/utils/fileupload"
 	"food-app/utils/auth"
+	"food-app/utils/fileupload"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
@@ -13,15 +13,34 @@ import (
 	"time"
 )
 
-func SaveFood(c *gin.Context) {
+type Food struct {
+	foodApp    application.FoodAppInterface
+	userApp    application.UserAppInterface
+	fileUpload fileupload.UploadFileInterface
+	tk         auth.TokenInterface
+	rd         auth.AuthInterface
+}
+
+//Food constructor
+func NewFood(fApp application.FoodAppInterface, uApp application.UserAppInterface, fd fileupload.UploadFileInterface, rd auth.AuthInterface, tk auth.TokenInterface) *Food {
+	return &Food{
+		foodApp:    fApp,
+		userApp:    uApp,
+		fileUpload: fd,
+		rd:         rd,
+		tk:         tk,
+	}
+}
+
+func (fo *Food) SaveFood(c *gin.Context) {
 	//check is the user is authenticated first
-	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := fo.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
 	}
 	//lookup the metadata in redis:
-	userId, err := auth.Auth.FetchAuth(metadata.TokenUuid)
+	userId, err := fo.rd.FetchAuth(metadata.TokenUuid)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
@@ -53,12 +72,12 @@ func SaveFood(c *gin.Context) {
 		return
 	}
 	//check if the user exist
-	_, err = application.UserApp.GetUser(userId)
+	_, err = fo.userApp.GetUser(userId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
 		return
 	}
-	uploadedFile, err := fileupload.Uploader.UploadFile(file)
+	uploadedFile, err := fo.fileUpload.UploadFile(file)
 	if err != nil {
 		saveFoodError["upload_err"] = err.Error() //this error can be any we defined in the UploadFile method
 		c.JSON(http.StatusUnprocessableEntity, saveFoodError)
@@ -69,23 +88,23 @@ func SaveFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.FoodImage = uploadedFile
-	fo, saveErr := application.FoodApp.SaveFood(&food)
+	savedFood, saveErr := fo.foodApp.SaveFood(&food)
 	if saveErr != nil {
 		c.JSON(http.StatusInternalServerError, saveErr)
 		return
 	}
-	c.JSON(http.StatusCreated, fo)
+	c.JSON(http.StatusCreated, savedFood)
 }
 
-func UpdateFood(c *gin.Context) {
+func (fo *Food) UpdateFood(c *gin.Context) {
 	//Check if the user is authenticated first
-	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
+	metadata, err := fo.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
 	}
 	//lookup the metadata in redis:
-	userId, err := auth.Auth.FetchAuth(metadata.TokenUuid)
+	userId, err := fo.rd.FetchAuth(metadata.TokenUuid)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "unauthorized")
 		return
@@ -113,14 +132,14 @@ func UpdateFood(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, updateFoodError)
 		return
 	}
-	user, err := application.UserApp.GetUser(userId)
+	user, err := fo.userApp.GetUser(userId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
 		return
 	}
 
 	//check if the food exist:
-	food, err := application.FoodApp.GetFood(foodId)
+	food, err := fo.foodApp.GetFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusNotFound, err.Error())
 		return
@@ -136,7 +155,7 @@ func UpdateFood(c *gin.Context) {
 	// if nil, we used the old one whose path is saved in the database
 	file, _ := c.FormFile("food_image")
 	if file != nil {
-		food.FoodImage, err = fileupload.Uploader.UploadFile(file)
+		food.FoodImage, err = fo.fileUpload.UploadFile(file)
 		//since i am using Digital Ocean(DO) Spaces to save image, i am appending my DO url here. You can comment this line since you may be using Digital Ocean Spaces.
 		food.FoodImage = os.Getenv("DO_SPACES_URL") + food.FoodImage
 		if err != nil {
@@ -150,16 +169,16 @@ func UpdateFood(c *gin.Context) {
 	food.Title = title
 	food.Description = description
 	food.UpdatedAt = time.Now()
-	fo, dbUpdateErr := application.FoodApp.UpdateFood(food)
+	updatedFood, dbUpdateErr := fo.foodApp.UpdateFood(food)
 	if dbUpdateErr != nil {
 		c.JSON(http.StatusInternalServerError, dbUpdateErr)
 		return
 	}
-	c.JSON(http.StatusOK, fo)
+	c.JSON(http.StatusOK, updatedFood)
 }
 
-func GetAllFood(c *gin.Context) {
-	allfood, err := application.FoodApp.GetAllFood()
+func (fo *Food) GetAllFood(c *gin.Context) {
+	allfood, err := fo.foodApp.GetAllFood()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -167,18 +186,18 @@ func GetAllFood(c *gin.Context) {
 	c.JSON(http.StatusOK, allfood)
 }
 
-func GetFoodAndCreator(c *gin.Context) {
+func (fo *Food) GetFoodAndCreator(c *gin.Context) {
 	foodId, err := strconv.ParseUint(c.Param("food_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "invalid request")
 		return
 	}
-	food, err := application.FoodApp.GetFood(foodId)
+	food, err := fo.foodApp.GetFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	user, err := application.UserApp.GetUser(food.UserID)
+	user, err := fo.userApp.GetUser(food.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
@@ -190,8 +209,8 @@ func GetFoodAndCreator(c *gin.Context) {
 	c.JSON(http.StatusOK, foodAndUser)
 }
 
-func DeleteFood(c *gin.Context) {
-	metadata, err := auth.Token.ExtractTokenMetadata(c.Request)
+func (fo *Food) DeleteFood(c *gin.Context) {
+	metadata, err := fo.tk.ExtractTokenMetadata(c.Request)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, "Unauthorized")
 		return
@@ -201,12 +220,12 @@ func DeleteFood(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, "invalid request")
 		return
 	}
-	_, err = application.UserApp.GetUser(metadata.UserId)
+	_, err = fo.userApp.GetUser(metadata.UserId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return
 	}
-	err = application.FoodApp.DeleteFood(foodId)
+	err = fo.foodApp.DeleteFood(foodId)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err.Error())
 		return

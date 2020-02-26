@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"food-app/application"
 	"food-app/domain/entity"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -17,17 +16,16 @@ import (
 //IF YOU HAVE TIME, YOU CAN TEST ALL FAILURE CASES TO IMPROVE COVERAGE
 
 func TestSaveUser_Success(t *testing.T) {
-	application.UserApp = &fakeUserApp{}
-	saveUserApp = func(*entity.User) (*entity.User, map[string]string) {
-		//remember we are running sensitive info such as email and password
+	userApp.SaveUserFn = func(*entity.User) (*entity.User, map[string]string) {
 		return &entity.User{
 			ID:        1,
 			FirstName: "victor",
 			LastName:  "steven",
 		}, nil
 	}
+
 	r := gin.Default()
-	r.POST("/users", SaveUser)
+	r.POST("/users", s.SaveUser)
 	inputJSON := `{
 		"first_name": "victor",
 		"last_name": "steven",
@@ -44,8 +42,6 @@ func TestSaveUser_Success(t *testing.T) {
 	user := &entity.User{}
 
 	err = json.Unmarshal(rr.Body.Bytes(), &user)
-
-	fmt.Println("the string: ", string(rr.Body.Bytes()))
 
 	assert.Equal(t, rr.Code, 201)
 	assert.EqualValues(t, user.FirstName, "victor")
@@ -81,7 +77,7 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 		},
 		{
 			//When instead a string an integer is supplied, When attempting to unmarshal input to the user struct, it will fail
-			inputJSON: `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`,
+			inputJSON:  `{"first_name": 1234, "last_name": "steven","email": "steven@example.com","password": "password"}`,
 			statusCode: 422,
 		},
 	}
@@ -89,7 +85,7 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 	for _, v := range samples {
 
 		r := gin.Default()
-		r.POST("/users", SaveUser)
+		r.POST("/users", s.SaveUser)
 		req, err := http.NewRequest(http.MethodPost, "/users", bytes.NewBufferString(v.inputJSON))
 		if err != nil {
 			t.Errorf("this is the error: %v\n", err)
@@ -129,14 +125,14 @@ func Test_SaveUser_Invalidating_Data(t *testing.T) {
 
 //One of such db error is invalid email, it return that from the application and test.
 func TestSaveUser_DB_Error(t *testing.T) {
-	application.UserApp = &fakeUserApp{}
-	saveUserApp = func(*entity.User) (*entity.User, map[string]string) {
+	//application.UserApp = &fakeUserApp{}
+	userApp.SaveUserFn = func(*entity.User) (*entity.User, map[string]string) {
 		return nil, map[string]string{
 			"email_taken": "email already taken",
 		}
 	}
 	r := gin.Default()
-	r.POST("/users", SaveUser)
+	r.POST("/users", s.SaveUser)
 	inputJSON := `{
 		"first_name": "victor",
 		"last_name": "steven",
@@ -158,16 +154,15 @@ func TestSaveUser_DB_Error(t *testing.T) {
 	assert.Equal(t, rr.Code, 500)
 	assert.EqualValues(t, dbErr["email_taken"], "email already taken")
 }
-////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////
 
 //GetUsers Test
 func TestGetUsers_Success(t *testing.T) {
-	application.UserApp = &fakeUserApp{}
-	getUsersApp = func() ([]entity.User, error) {
+	userApp.GetUsersFn = func() ([]entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return []entity.User{
-			 {
+			{
 				ID:        1,
 				FirstName: "victor",
 				LastName:  "steven",
@@ -180,7 +175,7 @@ func TestGetUsers_Success(t *testing.T) {
 		}, nil
 	}
 	r := gin.Default()
-	r.GET("/users", GetUsers)
+	r.GET("/users", s.GetUsers)
 
 	req, err := http.NewRequest(http.MethodGet, "/users", nil)
 	if err != nil {
@@ -196,14 +191,13 @@ func TestGetUsers_Success(t *testing.T) {
 	assert.Equal(t, rr.Code, 200)
 	assert.EqualValues(t, len(users), 2)
 }
+
 ///////////////////////////////////////////////////////////////
-
-
 
 //GetUser Test
 func TestGetUser_Success(t *testing.T) {
-	application.UserApp = &fakeUserApp{}
-	getUserApp = func(uint64) (*entity.User, error) {
+	//application.UserApp = &fakeUserApp{}
+	userApp.GetUserFn = func(uint64) (*entity.User, error) {
 		//remember we are running sensitive info such as email and password
 		return &entity.User{
 			ID:        1,
@@ -213,9 +207,9 @@ func TestGetUser_Success(t *testing.T) {
 	}
 	r := gin.Default()
 	userId := strconv.Itoa(1)
-	r.GET("/users/:user_id", GetUser)
+	r.GET("/users/:user_id", s.GetUser)
 
-	req, err := http.NewRequest(http.MethodGet, "/users/" + userId, nil)
+	req, err := http.NewRequest(http.MethodGet, "/users/"+userId, nil)
 	if err != nil {
 		t.Errorf("this is the error: %v\n", err)
 	}
@@ -230,4 +224,3 @@ func TestGetUser_Success(t *testing.T) {
 	assert.EqualValues(t, user.FirstName, "victor")
 	assert.EqualValues(t, user.LastName, "steven")
 }
-

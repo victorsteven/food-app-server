@@ -1,8 +1,8 @@
 package fileupload
 
 import (
-"github.com/twinj/uuid"
-"path"
+	"github.com/twinj/uuid"
+	"path"
 )
 
 func FormatFile(fn string) string {

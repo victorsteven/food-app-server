@@ -2,13 +2,18 @@ package application
 
 import (
 	"food-app/domain/entity"
-	"food-app/domain/infrastructure"
+	"food-app/domain/repository"
 )
 
-type FoodImpl struct {
+type FoodApp struct {
+	fr repository.FoodRepository
 }
 
-var FoodApp FoodAppInterface = &FoodImpl{}
+//func NewFoodImpl(inf repository.FoodRepository) *FoodImpl {
+//	return &FoodImpl{ infrastructure: inf }
+//}
+
+var _ FoodAppInterface = &FoodApp{}
 
 type FoodAppInterface interface {
 	SaveFood(*entity.Food) (*entity.Food, map[string]string)
@@ -18,22 +23,22 @@ type FoodAppInterface interface {
 	DeleteFood(uint64) error
 }
 
-func (u *FoodImpl) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
-	return infrastructure.FoodRepo.SaveFood(food)
+func (f *FoodApp) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
+	return f.fr.SaveFood(food)
 }
 
-func (u *FoodImpl) GetAllFood() ([]entity.Food, error) {
-	return infrastructure.FoodRepo.GetAllFood()
+func (f *FoodApp) GetAllFood() ([]entity.Food, error) {
+	return f.fr.GetAllFood()
 }
 
-func (u *FoodImpl) GetFood(foodId uint64) (*entity.Food, error) {
-	return infrastructure.FoodRepo.GetFood(foodId)
+func (f *FoodApp) GetFood(foodId uint64) (*entity.Food, error) {
+	return f.fr.GetFood(foodId)
 }
 
-func (u *FoodImpl) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
-	return infrastructure.FoodRepo.UpdateFood(food)
+func (f *FoodApp) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
+	return f.fr.UpdateFood(food)
 }
 
-func (u *FoodImpl) DeleteFood(foodId uint64) error {
-	return infrastructure.FoodRepo.DeleteFood(foodId)
+func (f *FoodApp) DeleteFood(foodId uint64) error {
+	return f.fr.DeleteFood(foodId)
 }

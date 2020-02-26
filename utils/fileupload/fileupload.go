@@ -14,15 +14,18 @@ import (
 	"strings"
 )
 
-type fileUpload struct {
-
+func NewFileUpload() *fileUpload {
+	return &fileUpload{}
 }
 
-type fileInterface interface {
+type fileUpload struct{}
+
+type UploadFileInterface interface {
 	UploadFile(file *multipart.FileHeader) (string, error)
 }
+
 //So what is exposed is Uploader
-var Uploader fileInterface = &fileUpload{}
+var _ UploadFileInterface = &fileUpload{}
 
 func (fu *fileUpload) UploadFile(file *multipart.FileHeader) (string, error) {
 	f, err := file.Open()
