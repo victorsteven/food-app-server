@@ -9,24 +9,18 @@ import (
 	"strings"
 )
 
-//func NewFoodService(db *gorm.DB) repository.FoodRepository {
-//	return &foodRepository{db}
-//}
 
 type foodRepository struct {
 	db *gorm.DB
 }
 
+//The foodRepository implements the repository.FoodRepository interface
 //NewRepositoryFood is useful when writing test cases, to swap the real database with a test db
 func NewFoodRepository(db *gorm.DB) repository.FoodRepository {
 	return &foodRepository{db}
 }
 
-//The foodRepository implements the repository.FoodRepository interface
-var _ repository.FoodRepository = &foodRepository{}
-
 func (r *foodRepository) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
-	//db := rdbms.NewDB()
 	dbErr := map[string]string{}
 	//The images are uploaded to digital ocean spaces. So we need to prepend the url. This might not be your use case, if you are not uploading image to Digital Ocean.
 	food.FoodImage = os.Getenv("DO_SPACES_URL") + food.FoodImage
@@ -46,7 +40,6 @@ func (r *foodRepository) SaveFood(food *entity.Food) (*entity.Food, map[string]s
 }
 
 func (r *foodRepository) GetFood(id uint64) (*entity.Food, error) {
-	//db := rdbms.NewDB()
 	var food entity.Food
 	err := r.db.Debug().Where("id = ?", id).Take(&food).Error
 	if err != nil {
@@ -59,7 +52,6 @@ func (r *foodRepository) GetFood(id uint64) (*entity.Food, error) {
 }
 
 func (r *foodRepository) GetAllFood() ([]entity.Food, error) {
-	//db := rdbms.NewDB()
 	var foods []entity.Food
 	err := r.db.Debug().Limit(100).Order("created_at desc").Find(&foods).Error
 	if err != nil {
@@ -72,7 +64,6 @@ func (r *foodRepository) GetAllFood() ([]entity.Food, error) {
 }
 
 func (r *foodRepository) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
-	//db := rdbms.NewDB()
 	dbErr := map[string]string{}
 	err := r.db.Debug().Save(&food).Error
 	if err != nil {
@@ -89,7 +80,6 @@ func (r *foodRepository) UpdateFood(food *entity.Food) (*entity.Food, map[string
 }
 
 func (r *foodRepository) DeleteFood(id uint64) error {
-	//db := rdbms.NewDB()
 	var food entity.Food
 	err := r.db.Debug().Where("id = ?", id).Delete(&food).Error
 	if err != nil {

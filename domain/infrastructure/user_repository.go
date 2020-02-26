@@ -15,9 +15,6 @@ type userRepository struct {
 }
 
 //The userRepository implements the repository.UserRepository interface
-var _ repository.UserRepository = &userRepository{}
-
-//The struct userRepository now implement the UserRepository
 func NewUserRepository(db *gorm.DB) repository.UserRepository {
 	return &userRepository{db}
 }
@@ -39,7 +36,6 @@ func (r *userRepository) SaveUser(user *entity.User) (*entity.User, map[string]s
 }
 
 func (r *userRepository) GetUser(id uint64) (*entity.User, error) {
-	//db := rdbms.NewDB()
 	var user entity.User
 	err := r.db.Debug().Where("id = ?", id).Take(&user).Error
 	if err != nil {
@@ -52,7 +48,6 @@ func (r *userRepository) GetUser(id uint64) (*entity.User, error) {
 }
 
 func (r *userRepository) GetUsers() ([]entity.User, error) {
-	//db := rdbms.NewDB()
 	var users []entity.User
 	err := r.db.Debug().Find(&users).Error
 	if err != nil {
@@ -65,8 +60,6 @@ func (r *userRepository) GetUsers() ([]entity.User, error) {
 }
 
 func (r *userRepository) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
-	//db := rdbms.NewDB()
-	//fmt.Println("WE ARE HERE")
 	var user entity.User
 	dbErr := map[string]string{}
 	err := r.db.Debug().Where("email = ?", u.Email).Take(&user).Error

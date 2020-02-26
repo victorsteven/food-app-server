@@ -34,7 +34,7 @@ func main() {
 	redis_password := os.Getenv("REDIS_PASSWORD")
 
 
-	services, err := infrastructure.NewServices(dbdriver, user, password, port, host, dbname)
+	services, err := infrastructure.NewRepositories(dbdriver, user, password, port, host, dbname)
 	if err != nil {
 		panic(err)
 	}

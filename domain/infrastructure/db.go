@@ -14,7 +14,7 @@ type Repositories struct {
 	db   *gorm.DB
 }
 
-func NewServices(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*Repositories, error) {
+func NewRepositories(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) (*Repositories, error) {
 	DBURL := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s", DbHost, DbPort, DbUser, DbName, DbPassword)
 	db, err := gorm.Open(Dbdriver, DBURL)
 	if err != nil {
