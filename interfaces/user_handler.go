@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+//Users struct defines the dependencies that will be used
 type Users struct {
 	us application.UserAppInterface
 	rd auth.AuthInterface

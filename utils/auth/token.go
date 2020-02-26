@@ -22,6 +22,7 @@ type TokenInterface interface {
 
 type Token struct{}
 
+//Token implements the TokenInterface
 var _ TokenInterface = &Token{}
 
 func (t *Token) CreateToken(userid uint64) (*TokenDetails, error) {
