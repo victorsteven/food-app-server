@@ -132,7 +132,7 @@ func (fo *Food) UpdateFood(c *gin.Context) {
 		c.JSON(http.StatusUnprocessableEntity, updateFoodError)
 		return
 	}
-	user, err := fo.userApp.GetUser(userId)
+	_, err = fo.userApp.GetUser(userId)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, "user not found, unauthorized")
 		return
