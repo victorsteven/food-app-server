@@ -145,10 +145,10 @@ func (fo *Food) UpdateFood(c *gin.Context) {
 		return
 	}
 	//if the user id doesnt match with the one we have, dont update. This is the case where an authenticated user tries to update someone else post using postman, curl, etc
-	if user.ID != food.UserID {
-		c.JSON(http.StatusUnauthorized, "you are not the owner of this food")
-		return
-	}
+	//if user.ID != food.UserID {
+	//	c.JSON(http.StatusUnauthorized, "you are not the owner of this food")
+	//	return
+	//}
 	//Since this is an update request,  a new image may or may not be given.
 	// If not image is given, an error occurs. We know this that is why we ignored the error and instead check if the file is nil.
 	// if not nil, we process the file by calling the "UploadFile" method.
