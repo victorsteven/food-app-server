@@ -130,7 +130,7 @@ func TestLogout_Success(t *testing.T) {
 	fakeAuth.DeleteTokensFn = func(*auth.AccessDetails) error {
 		return nil
 	}
-
+	//This can be anything, since we have already mocked the method that checks if the token is valid or not and have told it what to return for us.
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
 
 	tokenString := fmt.Sprintf("Bearer %v", token)
