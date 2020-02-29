@@ -181,7 +181,7 @@ func TestSaverFood_Success(t *testing.T) {
 	//Close the multipart writer so it writes the ending boundary
 	multipartWriter.Close()
 
-	//use a valid token that has not expired. This token was created to live forever, just for test purposes with the user id of 1. This is so that it can always be used to run tests
+	//This can be anything, since we have already mocked the method that checks if the token is valid or not and have told it what to return for us.
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
 
 	tokenString := fmt.Sprintf("Bearer %v", token)
@@ -462,7 +462,7 @@ func TestUpdateFood_Success_With_File(t *testing.T) {
 	//Close the multipart writer so it writes the ending boundary
 	multipartWriter.Close()
 
-	//use a valid token that has not expired. This token was created to live forever, just for test purposes with the user id of 1. This is so that it can always be used to run tests
+	//This can be anything, since we have already mocked the method that checks if the token is valid or not and have told it what to return for us.
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
 
 	tokenString := fmt.Sprintf("Bearer %v", token)
@@ -566,7 +566,7 @@ func TestUpdateFood_Success_Without_File(t *testing.T) {
 	//Close the multipart writer so it writes the ending boundary
 	multipartWriter.Close()
 
-	//use a valid token that has not expired. This token was created to live forever, just for test purposes with the user id of 1. This is so that it can always be used to run tests
+	//This can be anything, since we have already mocked the method that checks if the token is valid or not and have told it what to return for us.
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
 
 	tokenString := fmt.Sprintf("Bearer %v", token)
@@ -718,7 +718,8 @@ func TestDeleteFood_Success(t *testing.T) {
 	foodApp.DeleteFoodFn = func(uint64) error {
 		return nil
 	}
-	//use a valid token that has not expired. This token was created to live forever, just for test purposes with the user id of 1. This is so that it can always be used to run tests
+
+	//This can be anything, since we have already mocked the method that checks if the token is valid or not and have told it what to return for us.
 	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3NfdXVpZCI6IjgyYTM3YWE5LTI4MGMtNDQ2OC04M2RmLTZiOGYyMDIzODdkMyIsImF1dGhvcml6ZWQiOnRydWUsInVzZXJfaWQiOjF9.ESelxq-UHormgXUwRNe4_Elz2i__9EKwCXPsNCyKV5o"
 
 	tokenString := fmt.Sprintf("Bearer %v", token)
