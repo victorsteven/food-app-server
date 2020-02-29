@@ -9,9 +9,6 @@ type FoodApp struct {
 	fr repository.FoodRepository
 }
 
-//func NewFoodImpl(inf repository.FoodRepository) *FoodImpl {
-//	return &FoodImpl{ infrastructure: inf }
-//}
 
 var _ FoodAppInterface = &FoodApp{}
 

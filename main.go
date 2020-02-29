@@ -1,7 +1,7 @@
 package main
 
 import (
-	"food-app/domain/infrastructure"
+	"food-app/infrastructure"
 	"food-app/interfaces"
 	"food-app/utils/auth"
 	"food-app/utils/fileupload"
