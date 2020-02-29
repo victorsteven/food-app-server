@@ -1,7 +1,7 @@
 package main
 
 import (
-	"food-app/infrastructure"
+	"food-app/infrastructure/persistence"
 	"food-app/interfaces"
 	"food-app/utils/auth"
 	"food-app/utils/fileupload"
@@ -34,7 +34,7 @@ func main() {
 	redis_password := os.Getenv("REDIS_PASSWORD")
 
 
-	services, err := infrastructure.NewRepositories(dbdriver, user, password, port, host, dbname)
+	services, err := persistence.NewRepositories(dbdriver, user, password, port, host, dbname)
 	if err != nil {
 		panic(err)
 	}
