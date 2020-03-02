@@ -11,6 +11,9 @@ import (
 	"time"
 )
 
+
+type Token struct{}
+
 func NewToken() *Token {
 	return &Token{}
 }
@@ -19,8 +22,6 @@ type TokenInterface interface {
 	CreateToken(userid uint64) (*TokenDetails, error)
 	ExtractTokenMetadata(*http.Request) (*AccessDetails, error)
 }
-
-type Token struct{}
 
 //Token implements the TokenInterface
 var _ TokenInterface = &Token{}

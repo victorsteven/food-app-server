@@ -14,16 +14,16 @@ type AuthInterface interface {
 	DeleteRefresh(string) error
 	DeleteTokens(*AccessDetails) error
 }
-var _ AuthInterface = &clientData{}
 
-type clientData struct {
+type ClientData struct {
 	client *redis.Client
 }
 
-func NewAuth(client *redis.Client) AuthInterface {
-	return &clientData{client: client}
-}
+var _ AuthInterface = &ClientData{}
 
+func NewAuth(client *redis.Client) *ClientData {
+	return &ClientData{client: client}
+}
 
 type AccessDetails struct {
 	TokenUuid string
@@ -40,7 +40,7 @@ type TokenDetails struct {
 }
 
 //Save token metadata to Redis
-func (tk *clientData) CreateAuth(userid uint64, td *TokenDetails) error {
+func (tk *ClientData) CreateAuth(userid uint64, td *TokenDetails) error {
 	at := time.Unix(td.AtExpires, 0) //converting Unix to UTC(to Time object)
 	rt := time.Unix(td.RtExpires, 0)
 	now := time.Now()
@@ -60,7 +60,7 @@ func (tk *clientData) CreateAuth(userid uint64, td *TokenDetails) error {
 }
 
 //Check the metadata saved
-func (tk *clientData) FetchAuth(tokenUuid string) (uint64, error) {
+func (tk *ClientData) FetchAuth(tokenUuid string) (uint64, error) {
 	userid, err := tk.client.Get(tokenUuid).Result()
 	if err != nil {
 		return 0, err
@@ -70,7 +70,7 @@ func (tk *clientData) FetchAuth(tokenUuid string) (uint64, error) {
 }
 
 //Once a user row in the token table
-func (tk *clientData) DeleteTokens(authD *AccessDetails) error {
+func (tk *ClientData) DeleteTokens(authD *AccessDetails) error {
 	//get the refresh uuid
 	refreshUuid := fmt.Sprintf("%s++%d", authD.TokenUuid, authD.UserId)
 	//delete access token
@@ -90,7 +90,7 @@ func (tk *clientData) DeleteTokens(authD *AccessDetails) error {
 	return nil
 }
 
-func (tk *clientData) DeleteRefresh(refreshUuid string) error {
+func (tk *ClientData) DeleteRefresh(refreshUuid string) error {
 	//delete refresh token
 	deleted, err := tk.client.Del(refreshUuid).Result()
 	if err != nil || deleted == 0 {
