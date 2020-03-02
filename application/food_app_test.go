@@ -35,7 +35,7 @@ func (f *fakeFoodRepo) DeleteFood(foodId uint64) error {
 }
 
 //var fakeFood repository.FoodRepository = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
-var foodApp FoodAppInterface = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
+var foodAppFake FoodAppInterface = &fakeFoodRepo{} //this is where the real implementation is swap with our fake implementation
 
 func TestSaveFood_Success(t *testing.T) {
 	//Mock the response coming from the infrastructure
@@ -53,7 +53,7 @@ func TestSaveFood_Success(t *testing.T) {
 		Description: "food description",
 		UserID:      1,
 	}
-	f, err := foodApp.SaveFood(food)
+	f, err := foodAppFake.SaveFood(food)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title")
 	assert.EqualValues(t, f.Description, "food description")
@@ -71,7 +71,7 @@ func TestGetFood_Success(t *testing.T) {
 		}, nil
 	}
 	foodId := uint64(1)
-	f, err := foodApp.GetFood(foodId)
+	f, err := foodAppFake.GetFood(foodId)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title")
 	assert.EqualValues(t, f.Description, "food description")
@@ -96,7 +96,7 @@ func TestAllFood_Success(t *testing.T) {
 			},
 		}, nil
 	}
-	f, err := foodApp.GetAllFood()
+	f, err := foodAppFake.GetAllFood()
 	assert.Nil(t, err)
 	assert.EqualValues(t, len(f), 2)
 }
@@ -117,7 +117,7 @@ func TestUpdateFood_Success(t *testing.T) {
 		Description: "food description update",
 		UserID:      1,
 	}
-	f, err := foodApp.UpdateFood(food)
+	f, err := foodAppFake.UpdateFood(food)
 	assert.Nil(t, err)
 	assert.EqualValues(t, f.Title, "food title update")
 	assert.EqualValues(t, f.Description, "food description update")
@@ -130,6 +130,6 @@ func TestDeleteFood_Success(t *testing.T) {
 		return nil
 	}
 	foodId := uint64(1)
-	err := foodApp.DeleteFood(foodId)
+	err := foodAppFake.DeleteFood(foodId)
 	assert.Nil(t, err)
 }

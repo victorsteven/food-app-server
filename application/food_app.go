@@ -5,12 +5,12 @@ import (
 	"food-app/domain/repository"
 )
 
-type FoodApp struct {
+type foodApp struct {
 	fr repository.FoodRepository
 }
 
 
-var _ FoodAppInterface = &FoodApp{}
+var _ FoodAppInterface = &foodApp{}
 
 type FoodAppInterface interface {
 	SaveFood(*entity.Food) (*entity.Food, map[string]string)
@@ -20,22 +20,22 @@ type FoodAppInterface interface {
 	DeleteFood(uint64) error
 }
 
-func (f *FoodApp) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
+func (f *foodApp) SaveFood(food *entity.Food) (*entity.Food, map[string]string) {
 	return f.fr.SaveFood(food)
 }
 
-func (f *FoodApp) GetAllFood() ([]entity.Food, error) {
+func (f *foodApp) GetAllFood() ([]entity.Food, error) {
 	return f.fr.GetAllFood()
 }
 
-func (f *FoodApp) GetFood(foodId uint64) (*entity.Food, error) {
+func (f *foodApp) GetFood(foodId uint64) (*entity.Food, error) {
 	return f.fr.GetFood(foodId)
 }
 
-func (f *FoodApp) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
+func (f *foodApp) UpdateFood(food *entity.Food) (*entity.Food, map[string]string) {
 	return f.fr.UpdateFood(food)
 }
 
-func (f *FoodApp) DeleteFood(foodId uint64) error {
+func (f *foodApp) DeleteFood(foodId uint64) error {
 	return f.fr.DeleteFood(foodId)
 }

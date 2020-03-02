@@ -30,7 +30,7 @@ func (u *fakeUserRepo) GetUserByEmailAndPassword(user *entity.User) (*entity.Use
 	return getUserEmailAndPasswordRepo(user)
 }
 
-var userApp UserAppInterface = &fakeUserRepo{} //this is where the real implementation is swap with our fake implementation
+var userAppFake UserAppInterface = &fakeUserRepo{} //this is where the real implementation is swap with our fake implementation
 
 func TestSaveUser_Success(t *testing.T) {
 	//Mock the response coming from the infrastructure
@@ -50,7 +50,7 @@ func TestSaveUser_Success(t *testing.T) {
 		Email:     "steven@example.com",
 		Password:  "password",
 	}
-	u, err := userApp.SaveUser(user)
+	u, err := userAppFake.SaveUser(user)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u.FirstName, "victor")
 	assert.EqualValues(t, u.LastName, "steven")
@@ -69,7 +69,7 @@ func TestGetUser_Success(t *testing.T) {
 		}, nil
 	}
 	userId := uint64(1)
-	u, err := userApp.GetUser(userId)
+	u, err := userAppFake.GetUser(userId)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u.FirstName, "victor")
 	assert.EqualValues(t, u.LastName, "steven")
@@ -96,7 +96,7 @@ func TestGetUsers_Success(t *testing.T) {
 			},
 		}, nil
 	}
-	users, err := userApp.GetUsers()
+	users, err := userAppFake.GetUsers()
 	assert.Nil(t, err)
 	assert.EqualValues(t, len(users), 2)
 }
@@ -119,7 +119,7 @@ func TestGetUserByEmailAndPassword_Success(t *testing.T) {
 		Email:     "steven@example.com",
 		Password:  "password",
 	}
-	u, err := userApp.GetUserByEmailAndPassword(user)
+	u, err := userAppFake.GetUserByEmailAndPassword(user)
 	assert.Nil(t, err)
 	assert.EqualValues(t, u.FirstName, "victor")
 	assert.EqualValues(t, u.LastName, "steven")
