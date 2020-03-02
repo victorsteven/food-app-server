@@ -10,16 +10,17 @@ import (
 	"strings"
 )
 
-type userRepository struct {
+type UserRepo struct {
 	db *gorm.DB
 }
 
-//The userRepository implements the repository.UserRepository interface
-func NewUserRepository(db *gorm.DB) repository.UserRepository {
-	return &userRepository{db}
+func NewUserRepository(db *gorm.DB) *UserRepo {
+	return &UserRepo{db}
 }
+//UserRepo implements the repository.UserRepository interface
+var _ repository.UserRepository = &UserRepo{}
 
-func (r *userRepository) SaveUser(user *entity.User) (*entity.User, map[string]string) {
+func (r *UserRepo) SaveUser(user *entity.User) (*entity.User, map[string]string) {
 	dbErr := map[string]string{}
 	err := r.db.Debug().Create(&user).Error
 	if err != nil {
@@ -35,7 +36,7 @@ func (r *userRepository) SaveUser(user *entity.User) (*entity.User, map[string]s
 	return user, nil
 }
 
-func (r *userRepository) GetUser(id uint64) (*entity.User, error) {
+func (r *UserRepo) GetUser(id uint64) (*entity.User, error) {
 	var user entity.User
 	err := r.db.Debug().Where("id = ?", id).Take(&user).Error
 	if err != nil {
@@ -47,7 +48,7 @@ func (r *userRepository) GetUser(id uint64) (*entity.User, error) {
 	return &user, nil
 }
 
-func (r *userRepository) GetUsers() ([]entity.User, error) {
+func (r *UserRepo) GetUsers() ([]entity.User, error) {
 	var users []entity.User
 	err := r.db.Debug().Find(&users).Error
 	if err != nil {
@@ -59,7 +60,7 @@ func (r *userRepository) GetUsers() ([]entity.User, error) {
 	return users, nil
 }
 
-func (r *userRepository) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
+func (r *UserRepo) GetUserByEmailAndPassword(u *entity.User) (*entity.User, map[string]string) {
 	var user entity.User
 	dbErr := map[string]string{}
 	err := r.db.Debug().Where("email = ?", u.Email).Take(&user).Error
