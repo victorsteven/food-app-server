@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"food-app/application"
 	"food-app/domain/entity"
-	"food-app/utils/auth"
+	"food-app/infrastructure/auth"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"net/http"

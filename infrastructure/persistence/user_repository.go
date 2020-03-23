@@ -4,7 +4,7 @@ import (
 	"errors"
 	"food-app/domain/entity"
 	"food-app/domain/repository"
-	"food-app/utils/security"
+	"food-app/infrastructure/security"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 	"strings"

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"food-app/domain/entity"
-	"food-app/utils/auth"
+	"food-app/infrastructure/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"net/http"

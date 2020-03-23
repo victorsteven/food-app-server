@@ -3,7 +3,7 @@ package interfaces
 import (
 	"food-app/application"
 	"food-app/domain/entity"
-	"food-app/utils/auth"
+	"food-app/infrastructure/auth"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"

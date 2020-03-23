@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"bytes"
-	"food-app/utils/auth"
+	"food-app/infrastructure/auth"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
